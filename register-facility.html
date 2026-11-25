@@ -1,0 +1,414 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <title>Register medical facility | SANYU HOSPITAL</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    .facility-registration-panel {
+      max-width:760px;
+      margin:25px auto;
+      padding:28px;
+      border:1px solid #e8eee9;
+      border-radius:22px;
+      background:#fff;
+      box-shadow:0 8px 28px rgba(20,50,30,.06);
+    }
+
+    .facility-registration-heading {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:25px;
+      padding-bottom:22px;
+      border-bottom:1px solid #edf1ed;
+    }
+
+    .facility-registration-heading h1 {
+      margin:0 0 9px;
+      color:#183b29;
+      font-size:25px;
+    }
+
+    .facility-registration-heading p {
+      max-width:520px;
+      margin:0;
+      color:#7b887f;
+      font-size:13px;
+      line-height:1.7;
+    }
+
+    .facility-heading-icon {
+      width:65px;
+      height:65px;
+      display:grid;
+      place-items:center;
+      flex-shrink:0;
+      border-radius:19px;
+      background:#e8f5ed;
+      color:#087443;
+      font-size:27px;
+    }
+
+    .form-section-heading {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:24px 0 17px;
+      color:#2c4935;
+      font-size:14px;
+      font-weight:750;
+    }
+
+    .form-section-heading i {
+      color:#087443;
+    }
+
+    .app-field {
+      margin-bottom:19px;
+    }
+
+    .app-field label {
+      display:block;
+      margin-bottom:8px;
+      color:#405447;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .field-input-wrap {
+      position:relative;
+    }
+
+    .field-input-wrap > i {
+      position:absolute;
+      top:16px;
+      left:15px;
+      color:#8a9a8f;
+      font-size:15px;
+      pointer-events:none;
+    }
+
+    .app-field input,
+    .app-field textarea {
+      width:100%;
+      box-sizing:border-box;
+      padding:13px 15px 13px 43px;
+      border:1px solid #e0e9e2;
+      border-radius:13px;
+      background:#fafcfb;
+      color:#263d2e;
+      font-family:inherit;
+      font-size:14px;
+      outline:none;
+      transition:.2s ease;
+    }
+
+    .app-field textarea {
+      min-height:105px;
+      resize:vertical;
+      padding-top:14px;
+      line-height:1.6;
+    }
+
+    .app-field input:focus,
+    .app-field textarea:focus {
+      border-color:#087b49;
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(8,123,73,.08);
+    }
+
+    .app-field input::placeholder,
+    .app-field textarea::placeholder {
+      color:#a5b0a8;
+    }
+
+    .facility-form-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:17px;
+    }
+
+    .facility-form-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:25px;
+      padding-top:20px;
+      border-top:1px solid #edf1ed;
+    }
+
+    .facility-form-actions .app-btn {
+      min-height:47px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      border-radius:13px;
+      padding:12px 20px;
+      font-weight:700;
+      text-decoration:none;
+      transition:.2s ease;
+    }
+
+    .facility-submit-btn {
+      background:linear-gradient(145deg,#087b49,#056139);
+      box-shadow:0 5px 14px rgba(8,116,67,.16);
+    }
+
+    .facility-submit-btn:hover {
+      transform:translateY(-2px);
+      box-shadow:0 8px 18px rgba(8,116,67,.22);
+    }
+
+    .facility-info-note {
+      display:flex;
+      align-items:flex-start;
+      gap:11px;
+      margin-top:22px;
+      padding:15px;
+      border-radius:14px;
+      background:#f0f7f2;
+      color:#567260;
+      font-size:12px;
+      line-height:1.7;
+    }
+
+    .facility-info-note i {
+      margin-top:3px;
+      color:#087443;
+    }
+
+    @media(max-width:650px) {
+      .facility-registration-panel {
+        margin:15px 10px;
+        padding:20px;
+        border-radius:18px;
+      }
+
+      .facility-registration-heading h1 {
+        font-size:21px;
+      }
+
+      .facility-heading-icon {
+        width:52px;
+        height:52px;
+        font-size:22px;
+        border-radius:15px;
+      }
+
+      .facility-form-grid {
+        grid-template-columns:1fr;
+        gap:0;
+      }
+
+      .facility-form-actions {
+        flex-direction:column;
+      }
+
+      .facility-form-actions .app-btn {
+        width:100%;
+        box-sizing:border-box;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="app-topbar">
+    <a class="app-brand" href="dashboard.html">
+      <i class="fa-solid fa-hospital"></i>
+      <span>SANYU HOSPITAL · COMMUNITY PROGRAM</span>
+    </a>
+
+    <button class="app-btn secondary" id="logoutBtn" type="button">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Sign out
+    </button>
+  </header>
+
+  <nav class="app-nav">
+
+    <a href="dashboard.html">
+      <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+
+    <a href="register.html">
+      <i class="fa-solid fa-user-plus"></i> Register client
+    </a>
+
+    <a href="riders.html">
+      <i class="fa-solid fa-users"></i> My registrations
+    </a>
+
+    <a href="add-stage.html">
+      <i class="fa-solid fa-location-dot"></i> Add stage
+    </a>
+
+    <a href="stages.html">
+      <i class="fa-solid fa-map-location-dot"></i> Stages
+    </a>
+
+    <a href="register-facility.html" class="active">
+      <i class="fa-solid fa-hospital-user"></i> Register facility
+    </a>
+
+    <a href="facilities.html">
+      <i class="fa-solid fa-hospital"></i> My facilities
+    </a>
+
+    <a href="profile.html">
+      <i class="fa-solid fa-circle-user"></i> Profile
+    </a>
+
+  </nav>
+
+  <main class="app-shell">
+
+    <section class="app-panel facility-registration-panel">
+
+      <div class="facility-registration-heading">
+
+        <div>
+          <h1>Register a medical facility</h1>
+
+          <p>
+            Capture a clinic, health centre, hospital or other medical
+            facility in your community outreach area.
+          </p>
+        </div>
+
+        <div class="facility-heading-icon">
+          <i class="fa-solid fa-hospital"></i>
+        </div>
+
+      </div>
+
+      <form id="facilityRegistrationForm">
+
+        <h3 class="form-section-heading">
+          <i class="fa-solid fa-building"></i>
+          Facility information
+        </h3>
+
+        <div class="app-field">
+          <label for="facilityName">Facility name</label>
+
+          <div class="field-input-wrap">
+            <i class="fa-solid fa-hospital"></i>
+
+            <input
+              id="facilityName"
+              name="facilityName"
+              type="text"
+              placeholder="e.g. Kawanda Medical Centre"
+              maxlength="120"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="facility-form-grid">
+
+          <div class="app-field">
+            <label for="facilityContact">Contact number</label>
+
+            <div class="field-input-wrap">
+              <i class="fa-solid fa-phone"></i>
+
+              <input
+                id="facilityContact"
+                name="contact"
+                type="tel"
+                placeholder="e.g. 0700 000 000"
+                maxlength="25"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="app-field">
+            <label for="facilityOwnerName">Owner name</label>
+
+            <div class="field-input-wrap">
+              <i class="fa-solid fa-user-tie"></i>
+
+              <input
+                id="facilityOwnerName"
+                name="ownerName"
+                type="text"
+                placeholder="Full name of facility owner"
+                maxlength="120"
+                required
+              >
+            </div>
+          </div>
+
+        </div>
+
+        <h3 class="form-section-heading">
+          <i class="fa-solid fa-location-dot"></i>
+          Location details
+        </h3>
+
+        <div class="app-field">
+          <label for="facilityLocation">Facility location</label>
+
+          <div class="field-input-wrap">
+            <i class="fa-solid fa-map-location-dot"></i>
+
+            <textarea
+              id="facilityLocation"
+              name="location"
+              rows="3"
+              placeholder="District, town, village, road or nearby landmark"
+              maxlength="300"
+              required
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="facility-info-note">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>
+            Please provide accurate facility details and contact information
+            to make it easier for the hospital to follow up.
+          </span>
+        </div>
+
+        <div class="app-actions facility-form-actions">
+
+          <button class="app-btn facility-submit-btn" type="submit">
+            <i class="fa-solid fa-floppy-disk"></i>
+            Register facility
+          </button>
+
+          <a class="app-btn secondary" href="facilities.html">
+            <i class="fa-solid fa-list"></i>
+            View my facilities
+          </a>
+
+        </div>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+  </footer>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>

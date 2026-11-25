@@ -1,0 +1,275 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <title>My medical facilities | SANYU HOSPITAL</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    .facilities-page {
+      padding-bottom:30px;
+    }
+
+    .facilities-heading {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      margin:25px 0 20px;
+    }
+
+    .facilities-heading h1 {
+      margin:0 0 7px;
+      color:#183b29;
+      font-size:25px;
+    }
+
+    .facilities-heading p {
+      margin:0;
+      color:#7b887f;
+      font-size:13px;
+    }
+
+    .register-facility-btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      padding:12px 17px;
+      border-radius:13px;
+      background:linear-gradient(145deg,#087b49,#056139);
+      color:#fff;
+      text-decoration:none;
+      font-size:13px;
+      font-weight:700;
+      box-shadow:0 5px 14px rgba(8,116,67,.16);
+      white-space:nowrap;
+      transition:.2s ease;
+    }
+
+    .register-facility-btn:hover {
+      transform:translateY(-2px);
+      box-shadow:0 8px 18px rgba(8,116,67,.22);
+    }
+
+    .facility-stat-card {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+      margin:14px 0 20px;
+      padding:22px;
+      background:#fff;
+      border:1px solid #e8eee9;
+      border-radius:18px;
+      box-shadow:0 5px 18px rgba(20,50,30,.05);
+    }
+
+    .facility-stat-label {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:#607066;
+      font-size:13px;
+      font-weight:650;
+    }
+
+    .facility-stat-icon {
+      width:45px;
+      height:45px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:#e8f5ed;
+      color:#087443;
+      font-size:19px;
+    }
+
+    .facility-stat-card strong {
+      color:#087443;
+      font-size:27px;
+      font-weight:850;
+    }
+
+    .facility-search-wrap {
+      position:relative;
+      margin:20px 0;
+    }
+
+    .facility-search-wrap i {
+      position:absolute;
+      left:16px;
+      top:50%;
+      transform:translateY(-50%);
+      color:#8a9a8f;
+      pointer-events:none;
+    }
+
+    .facility-search-wrap input {
+      width:100%;
+      min-height:50px;
+      padding:12px 16px 12px 45px;
+      box-sizing:border-box;
+      border:1px solid #e2eae4;
+      border-radius:15px;
+      background:#fff;
+      color:#263d2e;
+      outline:none;
+      font-size:13px;
+      box-shadow:0 4px 14px rgba(20,50,30,.035);
+      transition:.2s ease;
+    }
+
+    .facility-search-wrap input:focus {
+      border-color:#087b49;
+      box-shadow:0 0 0 3px rgba(8,123,73,.08);
+    }
+
+    #facilitiesList {
+      min-height:100px;
+    }
+
+    @media(max-width:600px) {
+      .facilities-heading {
+        align-items:flex-start;
+        flex-direction:column;
+        margin:20px 0;
+      }
+
+      .facilities-heading h1 { font-size:22px; }
+
+      .register-facility-btn {
+        width:100%;
+        box-sizing:border-box;
+      }
+
+      .facility-stat-card {
+        padding:17px;
+        border-radius:16px;
+      }
+
+      .facility-stat-card strong { font-size:24px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="app-topbar">
+    <a class="app-brand" href="dashboard.html">
+      <i class="fa-solid fa-hospital"></i>
+      <span>SANYU HOSPITAL · COMMUNITY PROGRAM</span>
+    </a>
+
+    <button class="app-btn secondary" id="logoutBtn" type="button">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Sign out
+    </button>
+  </header>
+
+  <nav class="app-nav">
+
+    <a href="dashboard.html">
+      <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+
+    <a href="register.html">
+      <i class="fa-solid fa-user-plus"></i> Register client
+    </a>
+
+    <a href="riders.html">
+      <i class="fa-solid fa-users"></i> My registrations
+    </a>
+
+    <a href="add-stage.html">
+      <i class="fa-solid fa-location-dot"></i> Add stage
+    </a>
+
+    <a href="stages.html">
+      <i class="fa-solid fa-map-location-dot"></i> Stages
+    </a>
+
+    <a href="register-facility.html">
+      <i class="fa-solid fa-hospital-user"></i> Register facility
+    </a>
+
+    <a href="facilities.html" class="active">
+      <i class="fa-solid fa-hospital"></i> My facilities
+    </a>
+
+    <a href="profile.html">
+      <i class="fa-solid fa-circle-user"></i> Profile
+    </a>
+
+  </nav>
+
+  <main class="app-shell facilities-page">
+
+    <div class="facilities-heading">
+
+      <div>
+        <h1>
+          <i class="fa-solid fa-hospital" style="color:#087443"></i>
+          My medical facilities
+        </h1>
+
+        <p>
+          View and manage facilities registered through your marketer account.
+        </p>
+      </div>
+
+      <a class="register-facility-btn" href="register-facility.html">
+        <i class="fa-solid fa-plus"></i>
+        Register facility
+      </a>
+
+    </div>
+
+    <section class="app-stat facility-stat-card">
+
+      <div class="facility-stat-label">
+        <div class="facility-stat-icon">
+          <i class="fa-solid fa-building-circle-check"></i>
+        </div>
+
+        <span>Total facilities registered</span>
+      </div>
+
+      <strong id="facilityTotal">0</strong>
+
+    </section>
+
+    <div class="facility-search-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+
+      <input
+        class="app-search"
+        id="facilitySearch"
+        type="search"
+        placeholder="Search facility, contact, owner or location"
+        autocomplete="off"
+      >
+    </div>
+
+    <div id="facilitiesList">
+      <p class="muted">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Loading your facilities...
+      </p>
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+  </footer>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>

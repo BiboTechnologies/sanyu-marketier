@@ -1,0 +1,588 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087b49">
+  <title>My Registrations | SANYU HOSPITAL</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f8f6;
+      color: #26382d;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .app-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      padding: 16px 22px;
+      background: #fff;
+      border-bottom: 1px solid #e9eee9;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #075b36;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .app-brand i {
+      display: grid;
+      place-items: center;
+      width: 39px;
+      height: 39px;
+      border-radius: 12px;
+      color: #087443;
+      background: #e8f5ed;
+      font-size: 19px;
+    }
+
+    #logoutBtn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 15px;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    #logoutBtn:hover {
+      background: #fff0f0;
+      color: #c03939;
+    }
+
+    .app-nav {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 13px 18px;
+      margin: 12px 18px;
+      background: #fff;
+      border: 1px solid #e8eee9;
+      border-radius: 18px;
+      box-shadow: 0 5px 18px rgba(20,50,30,.06);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .app-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .app-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      white-space: nowrap;
+      text-decoration: none;
+      padding: 11px 15px;
+      border-radius: 12px;
+      color: #64746a;
+      font-size: 13px;
+      font-weight: 600;
+      background: transparent;
+      border: 1px solid transparent;
+      transition: all .25s ease;
+    }
+
+    .app-nav a i {
+      font-size: 16px;
+      transition: transform .2s ease;
+    }
+
+    .app-nav a:hover {
+      background: #f0f7f2;
+      color: #087443;
+      transform: translateY(-2px);
+    }
+
+    .app-nav a:hover i {
+      transform: scale(1.12);
+    }
+
+    .app-nav a.active {
+      background: linear-gradient(145deg, #087b49, #056139);
+      color: #fff;
+      border-color: #087443;
+      box-shadow: 0 4px 12px rgba(8,116,67,.20);
+    }
+
+    .app-shell {
+      max-width: 1250px;
+      margin: 0 auto;
+      padding: 25px 20px 55px;
+      min-height: calc(100vh - 180px);
+    }
+
+    .page-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .page-heading h1 {
+      margin: 0 0 7px;
+      color: #153e29;
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: -.6px;
+    }
+
+    .page-heading p {
+      margin: 0;
+      color: #7a8980;
+      font-size: 14px;
+    }
+
+    .app-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 43px;
+      padding: 11px 17px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #087b49, #056139);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .app-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 13px rgba(8,116,67,.17);
+    }
+
+    .app-btn.secondary {
+      background: #fff;
+      color: #5e7165;
+      border-color: #e3ebe5;
+    }
+
+    .app-btn.secondary:hover {
+      background: #f0f7f2;
+      color: #087443;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 25px;
+    }
+
+    .app-stat {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 23px;
+      min-height: 125px;
+      background: #fff;
+      border: 1px solid #e8eee9;
+      border-radius: 19px;
+      box-shadow: 0 5px 18px rgba(20,50,30,.045);
+      overflow: hidden;
+    }
+
+    .app-stat span {
+      color: #78867e;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .app-stat strong {
+      color: #075b36;
+      font-size: 32px;
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .app-stat::after {
+      content: "";
+      position: absolute;
+      right: 20px;
+      top: 22px;
+      width: 43px;
+      height: 43px;
+      border-radius: 13px;
+      background: #eaf6ee;
+    }
+
+    .app-stat:first-child::before {
+      content: "\f0c0";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      position: absolute;
+      right: 33px;
+      top: 35px;
+      z-index: 1;
+      color: #087b49;
+      font-size: 17px;
+    }
+
+    .app-stat:last-child::before {
+      content: "\f058";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      position: absolute;
+      right: 33px;
+      top: 35px;
+      z-index: 1;
+      color: #087b49;
+      font-size: 17px;
+    }
+
+    .registration-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 17px;
+      padding: 14px;
+      background: #fff;
+      border: 1px solid #e8eee9;
+      border-radius: 17px;
+      box-shadow: 0 4px 14px rgba(20,50,30,.035);
+    }
+
+    .app-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .client-tab {
+      min-height: 39px;
+      padding: 9px 15px;
+      border-radius: 11px;
+      font-size: 12px;
+    }
+
+    .client-tab.active {
+      background: linear-gradient(145deg, #087b49, #056139);
+      color: #fff;
+      border-color: #087443;
+      box-shadow: 0 3px 9px rgba(8,116,67,.15);
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+      max-width: 350px;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8a9a90;
+      font-size: 14px;
+    }
+
+    .app-search {
+      width: 100%;
+      min-height: 43px;
+      padding: 11px 15px 11px 42px;
+      border: 1px solid #e2eae4;
+      border-radius: 12px;
+      outline: none;
+      background: #f9fbf9;
+      color: #26382d;
+      font-size: 13px;
+      transition: .2s;
+    }
+
+    .app-search:focus {
+      border-color: #087b49;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(8,123,73,.09);
+    }
+
+    #clientsList {
+      min-height: 170px;
+      padding: 22px;
+      background: #fff;
+      border: 1px solid #e8eee9;
+      border-radius: 18px;
+      box-shadow: 0 5px 18px rgba(20,50,30,.045);
+      overflow-x: auto;
+    }
+
+    .app-footer {
+      padding: 20px 15px;
+      text-align: center;
+      color: #89968e;
+      font-size: 12px;
+      border-top: 1px solid #e9eee9;
+      background: #fff;
+    }
+
+    @media(max-width:700px) {
+      .app-topbar {
+        padding: 13px 14px;
+      }
+
+      .app-brand {
+        font-size: 11px;
+      }
+
+      .app-nav {
+        margin: 9px 10px;
+        padding: 10px;
+        gap: 7px;
+        border-radius: 15px;
+      }
+
+      .app-nav a {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      .app-nav a i {
+        font-size: 15px;
+      }
+
+      .app-shell {
+        padding: 20px 12px 40px;
+      }
+
+      .page-heading {
+        align-items: flex-start;
+      }
+
+      .page-heading h1 {
+        font-size: 23px;
+      }
+
+      .page-heading .app-btn {
+        padding: 10px 12px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .app-grid {
+        gap: 10px;
+      }
+
+      .app-stat {
+        padding: 18px;
+        min-height: 112px;
+      }
+
+      .app-stat strong {
+        font-size: 28px;
+      }
+
+      .app-stat::after {
+        width: 35px;
+        height: 35px;
+        right: 12px;
+        top: 17px;
+      }
+
+      .app-stat:first-child::before,
+      .app-stat:last-child::before {
+        right: 23px;
+        top: 28px;
+        font-size: 14px;
+      }
+
+      .registration-controls {
+        align-items: stretch;
+        padding: 11px;
+      }
+
+      .app-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .client-tab {
+        width: 100%;
+        padding: 10px 8px;
+        font-size: 11px;
+      }
+
+      .search-wrap {
+        max-width: none;
+        min-width: 100%;
+      }
+
+      #clientsList {
+        padding: 15px;
+      }
+    }
+
+    @media(max-width:380px) {
+      .page-heading {
+        flex-direction: column;
+      }
+
+      .page-heading .app-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="app-topbar">
+    <a class="app-brand" href="dashboard.html">
+      <i class="fa-solid fa-hospital"></i>
+      SANYU HOSPITAL · COMMUNITY PROGRAM
+    </a>
+
+    <button class="app-btn secondary" id="logoutBtn" type="button">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Sign out
+    </button>
+  </header>
+
+  <nav class="app-nav">
+    <a href="dashboard.html">
+      <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+
+    <a href="register.html">
+      <i class="fa-solid fa-user-plus"></i> Register client
+    </a>
+
+    <a href="riders.html" class="active">
+      <i class="fa-solid fa-users"></i> My registrations
+    </a>
+
+    <a href="add-stage.html">
+      <i class="fa-solid fa-motorcycle"></i> Add stage
+    </a>
+
+    <a href="stages.html">
+      <i class="fa-solid fa-location-dot"></i> Stages
+    </a>
+
+    <a href="register-facility.html">
+      <i class="fa-solid fa-hospital-user"></i> Register facility
+    </a>
+
+    <a href="facilities.html">
+      <i class="fa-solid fa-hospital"></i> My facilities
+    </a>
+
+    <a href="profile.html">
+      <i class="fa-solid fa-user"></i> Profile
+    </a>
+  </nav>
+
+  <main class="app-shell">
+
+    <div class="page-heading">
+      <div>
+        <h1>My registrations</h1>
+        <p class="muted">
+          Manage riders and pregnant women you have registered.
+        </p>
+      </div>
+
+      <a class="app-btn" href="register.html">
+        <i class="fa-solid fa-plus"></i>
+        Register client
+      </a>
+    </div>
+
+    <section class="app-grid">
+
+      <div class="app-stat">
+        <span>Total clients</span>
+        <strong id="totalClients">0</strong>
+      </div>
+
+      <div class="app-stat">
+        <span>Verified riders</span>
+        <strong id="verifiedClients">0</strong>
+      </div>
+
+    </section>
+
+    <section class="registration-controls">
+
+      <div class="app-actions">
+        <button class="app-btn client-tab active" data-filter="all" type="button">
+          <i class="fa-solid fa-users"></i>
+          All
+        </button>
+
+        <button class="app-btn secondary client-tab" data-filter="rider" type="button">
+          <i class="fa-solid fa-motorcycle"></i>
+          Riders
+        </button>
+
+        <button class="app-btn secondary client-tab" data-filter="pregnant" type="button">
+          <i class="fa-solid fa-person-pregnant"></i>
+          Pregnant women
+        </button>
+
+        <button class="app-btn secondary client-tab" data-filter="pending" type="button">
+          <i class="fa-solid fa-clock"></i>
+          Pending
+        </button>
+      </div>
+
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          id="clientSearch"
+          class="app-search"
+          type="search"
+          placeholder="Search by name or phone"
+          autocomplete="off"
+        >
+      </div>
+
+    </section>
+
+    <div id="clientsList" class="app-panel">
+      <div style="display:flex;align-items:center;gap:10px;color:#7a8980;">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Loading registrations...
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+  </footer>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,399 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <title>Client details | SANYU HOSPITAL</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    .app-brand i {
+      display:grid;
+      place-items:center;
+      width:39px;
+      height:39px;
+      border-radius:12px;
+      color:#087443;
+      background:#e8f5ed;
+      font-size:19px;
+    }
+
+    .detail-panel {
+      max-width:850px;
+      margin:25px auto;
+      padding:28px;
+      background:#fff;
+      border:1px solid #e9eee9;
+      border-radius:22px;
+      box-shadow:0 8px 28px rgba(20,50,30,.06);
+    }
+
+    .back-link {
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+      color:#087443;
+      text-decoration:none;
+      font-weight:650;
+      font-size:14px;
+      margin-bottom:25px;
+    }
+
+    .back-link:hover { color:#056139; }
+
+    .page-heading {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      padding-bottom:25px;
+      border-bottom:1px solid #edf1ed;
+    }
+
+    .client-heading {
+      display:flex;
+      align-items:center;
+      gap:16px;
+      min-width:0;
+    }
+
+    #detailClientInitials {
+      display:grid;
+      place-items:center;
+      width:66px;
+      height:66px;
+      flex-shrink:0;
+      border-radius:20px;
+      background:linear-gradient(145deg,#e5f5eb,#ccebd8);
+      color:#087443;
+      font-size:23px;
+      font-weight:800;
+      box-shadow:0 5px 14px rgba(8,116,67,.10);
+    }
+
+    .client-heading h1 {
+      margin:0 0 6px;
+      font-size:25px;
+      color:#183b29;
+    }
+
+    .client-heading p {
+      margin:0;
+      color:#77847b;
+      font-size:13px;
+    }
+
+    #detailClientStatus {
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      padding:9px 14px;
+      border-radius:30px;
+      background:#fff5df;
+      color:#a56b08;
+      font-size:12px;
+      font-weight:750;
+      white-space:nowrap;
+    }
+
+    .details-section-title {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:26px 0 16px;
+      color:#244b34;
+      font-size:15px;
+      font-weight:750;
+    }
+
+    .details-section-title i {
+      color:#087443;
+      font-size:16px;
+    }
+
+    .detail-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:13px;
+      margin-top:20px;
+    }
+
+    .detail-item {
+      padding:17px;
+      background:#f8faf8;
+      border:1px solid #edf1ed;
+      border-radius:15px;
+      min-width:0;
+    }
+
+    .detail-item .detail-label {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:9px;
+      color:#78857c;
+      font-size:12px;
+      font-weight:650;
+    }
+
+    .detail-item .detail-label i {
+      color:#168052;
+    }
+
+    .detail-item .detail-value {
+      margin:0;
+      color:#263d2e;
+      font-size:15px;
+      font-weight:650;
+      overflow-wrap:anywhere;
+    }
+
+    .rider-details {
+      margin-top:22px;
+      padding:20px;
+      background:#f8faf8;
+      border:1px solid #edf1ed;
+      border-radius:16px;
+    }
+
+    .rider-details p {
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin:12px 0;
+      color:#536258;
+      font-size:14px;
+    }
+
+    .rider-details p:last-child { margin-bottom:0; }
+
+    .rider-details i {
+      width:17px;
+      color:#087443;
+      margin-top:3px;
+    }
+
+    .rider-details strong { color:#304638; }
+
+    #detailVerificationStatus {
+      margin:22px 0 0;
+      padding:14px 16px;
+      border-radius:13px;
+      background:#f0f7f2;
+      color:#276342;
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    #verificationAction {
+      margin-top:17px;
+    }
+
+    #verifyClientPhoneBtn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      padding:13px 20px;
+      border:0;
+      border-radius:13px;
+      background:linear-gradient(145deg,#087b49,#056139);
+      color:#fff;
+      font-weight:700;
+      box-shadow:0 5px 14px rgba(8,116,67,.18);
+      transition:.2s ease;
+    }
+
+    #verifyClientPhoneBtn:hover {
+      transform:translateY(-2px);
+      box-shadow:0 8px 18px rgba(8,116,67,.23);
+    }
+
+    @media(max-width:600px) {
+      .detail-panel {
+        margin:15px 10px;
+        padding:19px;
+        border-radius:18px;
+      }
+
+      .page-heading { align-items:flex-start; }
+
+      .client-heading { gap:12px; }
+
+      #detailClientInitials {
+        width:55px;
+        height:55px;
+        border-radius:16px;
+        font-size:19px;
+      }
+
+      .client-heading h1 { font-size:20px; }
+
+      #detailClientStatus {
+        padding:7px 10px;
+        font-size:11px;
+      }
+
+      .detail-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="app-topbar">
+    <a class="app-brand" href="dashboard.html">
+      <i class="fa-solid fa-hospital"></i>
+      <span>SANYU HOSPITAL · COMMUNITY PROGRAM</span>
+    </a>
+
+    <button class="app-btn secondary" id="logoutBtn" type="button">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Sign out
+    </button>
+  </header>
+
+  <nav class="app-nav">
+    <a href="dashboard.html">
+      <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+
+    <a href="register.html">
+      <i class="fa-solid fa-user-plus"></i> Register client
+    </a>
+
+    <a href="riders.html" class="active">
+      <i class="fa-solid fa-users"></i> My registrations
+    </a>
+
+    <a href="add-stage.html">
+      <i class="fa-solid fa-location-dot"></i> Add stage
+    </a>
+
+    <a href="stages.html">
+      <i class="fa-solid fa-map-location-dot"></i> Stages
+    </a>
+
+    <a href="register-facility.html">
+      <i class="fa-solid fa-hospital-user"></i> Register facility
+    </a>
+
+    <a href="facilities.html">
+      <i class="fa-solid fa-hospital"></i> My facilities
+    </a>
+
+    <a href="profile.html">
+      <i class="fa-solid fa-circle-user"></i> Profile
+    </a>
+  </nav>
+
+  <main class="app-shell">
+
+    <section class="app-panel detail-panel">
+
+      <a href="riders.html" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to registrations
+      </a>
+
+      <div class="page-heading">
+
+        <div class="client-heading">
+          <div id="detailClientInitials" class="facility-card-icon">M</div>
+
+          <div>
+            <h1 id="detailClientName">Client</h1>
+            <p id="detailClientType" class="muted"></p>
+          </div>
+        </div>
+
+        <span id="detailClientStatus" class="facility-status">
+          <i class="fa-solid fa-clock"></i>
+          Pending
+        </span>
+
+      </div>
+
+      <h3 class="details-section-title">
+        <i class="fa-solid fa-address-card"></i>
+        Client information
+      </h3>
+
+      <div class="detail-grid">
+
+        <div class="detail-item">
+          <div class="detail-label">
+            <i class="fa-solid fa-phone"></i>
+            Phone number
+          </div>
+          <p id="detailClientPhone" class="detail-value"></p>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">
+            <i class="fa-solid fa-user-tie"></i>
+            Registered by marketer
+          </div>
+          <p id="detailMarketerName" class="detail-value"></p>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">
+            <i class="fa-solid fa-calendar-plus"></i>
+            Registration date
+          </div>
+          <p id="detailRegistrationDate" class="detail-value"></p>
+        </div>
+
+      </div>
+
+      <section id="detailRiderSection" class="rider-details">
+
+        <h3 class="details-section-title" style="margin-top:0">
+          <i class="fa-solid fa-motorcycle"></i>
+          Rider information
+        </h3>
+
+        <p>
+          <i class="fa-solid fa-id-card"></i>
+          <span>
+            <strong>National ID:</strong>
+            <span id="detailClientNationalId"></span>
+          </span>
+        </p>
+
+        <p>
+          <i class="fa-solid fa-location-dot"></i>
+          <span>
+            <strong>Stage:</strong>
+            <span id="detailClientStage"></span>
+          </span>
+        </p>
+
+      </section>
+
+      <p id="detailVerificationStatus"></p>
+
+      <div id="verificationAction" class="hidden">
+        <button id="verifyClientPhoneBtn" class="app-btn" type="button">
+          <i class="fa-solid fa-shield-halved"></i>
+          Verify phone
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+  </footer>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>

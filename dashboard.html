@@ -1,0 +1,376 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#075985">
+
+<title>Dashboard | SANYU HOSPITAL</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+/* Dashboard enhancements */
+.dashboard-welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.dashboard-welcome h1 {
+  margin: 5px 0;
+}
+
+.dashboard-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #e8f5ed;
+  color: #087443;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #cce8d6;
+  overflow: hidden;
+}
+
+.dashboard-avatar strong {
+  font-size: 20px;
+}
+
+.dashboard-avatar img {
+  object-fit: cover;
+}
+
+.dashboard-stat {
+  position: relative;
+  border-radius: 18px;
+  transition: .2s ease;
+}
+
+.dashboard-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.07);
+}
+
+.stat-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #718078;
+  font-size: 13px;
+}
+
+.stat-icon {
+  width: 39px;
+  height: 39px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+}
+
+.stat-icon.blue {
+  color: #2877d4;
+  background: #eaf2ff;
+}
+
+.stat-icon.green {
+  color: #087443;
+  background: #e8f5ed;
+}
+
+.stat-icon.pink {
+  color: #d94f8c;
+  background: #fff0f5;
+}
+
+.dashboard-stat > strong {
+  display: block;
+  font-size: 27px;
+  margin: 14px 0 5px;
+  color: #173b29;
+}
+
+.dashboard-stat small {
+  font-size: 12px;
+}
+
+.dashboard-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid #e4eee7;
+  transition: .2s;
+}
+
+.dashboard-action:hover {
+  border-color: #087443;
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(8,116,67,.08);
+}
+
+.action-icon {
+  width: 47px;
+  height: 47px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: #e8f5ed;
+  color: #087443;
+}
+
+.action-icon.pink {
+  background: #fff0f5;
+  color: #d94f8c;
+}
+
+.action-icon.blue {
+  background: #eaf2ff;
+  color: #2877d4;
+}
+
+.dashboard-action h3 {
+  margin: 2px 0 7px;
+}
+
+.dashboard-action p {
+  margin: 0;
+}
+
+@media(max-width:600px) {
+  .dashboard-welcome {
+    align-items: flex-start;
+  }
+
+  .dashboard-stat > strong {
+    font-size: 23px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP HEADER -->
+<header class="app-topbar">
+  <a class="app-brand" href="dashboard.html">
+    <i class="fa-solid fa-hospital"></i>
+    SANYU HOSPITAL · COMMUNITY PROGRAM
+  </a>
+
+  <button class="app-btn secondary" id="logoutBtn" type="button">
+    <i class="fa-solid fa-right-from-bracket"></i>
+    Sign out
+  </button>
+</header>
+
+<!-- NAVIGATION -->
+<nav class="app-nav">
+
+  <a href="dashboard.html" class="active">
+    <i class="fa-solid fa-house"></i>
+    Dashboard
+  </a>
+
+  <a href="register.html">
+    <i class="fa-solid fa-user-plus"></i>
+    Register client
+  </a>
+
+  <a href="riders.html">
+    <i class="fa-solid fa-motorcycle"></i>
+    My registrations
+  </a>
+
+  <a href="add-stage.html">
+    <i class="fa-solid fa-location-dot"></i>
+    Add stage
+  </a>
+
+  <a href="stages.html">
+    <i class="fa-solid fa-map-location-dot"></i>
+    Stages
+  </a>
+
+  <a href="register-facility.html">
+    <i class="fa-solid fa-hospital"></i>
+    Register facility
+  </a>
+
+  <a href="facilities.html">
+    <i class="fa-solid fa-house-medical"></i>
+    My facilities
+  </a>
+
+  <a href="profile.html">
+    <i class="fa-solid fa-user"></i>
+    Profile
+  </a>
+
+</nav>
+
+<main class="app-shell">
+
+  <!-- WELCOME -->
+  <div class="dashboard-welcome">
+    <div>
+      <p id="dashboardGreeting" class="muted">
+        Welcome
+      </p>
+
+      <h1>
+        Hello, <span id="marketeerName">Marketer</span>
+      </h1>
+
+      <p class="muted">
+        Your community outreach activity at a glance.
+      </p>
+    </div>
+
+    <div id="dashboardProfileAvatar" class="dashboard-avatar">
+      <img
+        id="dashboardProfilePhoto"
+        class="hidden"
+        alt="Profile"
+        width="50"
+        height="50"
+        style="border-radius:50%"
+      >
+
+      <strong id="dashboardProfileInitials">M</strong>
+    </div>
+  </div>
+
+  <!-- STATISTICS -->
+  <section class="app-grid">
+
+    <div class="app-stat dashboard-stat">
+      <div class="stat-heading">
+        <div class="stat-icon blue">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        Total registrations
+      </div>
+
+      <strong id="totalRegistrations">0</strong>
+
+      <small id="monthlyRegistrationChange" class="muted">
+        This month
+      </small>
+    </div>
+
+    <div class="app-stat dashboard-stat">
+      <div class="stat-heading">
+        <div class="stat-icon green">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+        Pending earnings
+      </div>
+
+      <strong>
+        UGX <span id="totalEarnings">0</span>
+      </strong>
+
+      <small class="muted">
+        Your commission summary
+      </small>
+    </div>
+
+    <div class="app-stat dashboard-stat">
+      <div class="stat-heading">
+        <div class="stat-icon pink">
+          <i class="fa-solid fa-hospital"></i>
+        </div>
+        Medical facilities
+      </div>
+
+      <strong>
+        <a href="facilities.html" style="color:inherit;text-decoration:none">
+          View <i class="fa-solid fa-arrow-right" style="font-size:15px"></i>
+        </a>
+      </strong>
+
+      <small class="muted">
+        Your registered facilities
+      </small>
+    </div>
+
+  </section>
+
+  <!-- RECENT REGISTRATIONS -->
+  <section class="app-panel">
+
+    <div class="page-heading">
+      <div>
+        <h2>
+          <i class="fa-solid fa-clock-rotate-left" style="color:#087443"></i>
+          Recent registrations
+        </h2>
+
+        <p class="muted">Your latest community registrations.</p>
+      </div>
+
+      <a class="app-btn" href="register.html">
+        <i class="fa-solid fa-user-plus"></i>
+        Register client
+      </a>
+    </div>
+
+    <div id="recentRegistrations">
+      <p class="muted">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Loading recent registrations...
+      </p>
+    </div>
+
+  </section>
+
+  <!-- QUICK ACTIONS -->
+  <section class="app-grid">
+
+    <a class="app-panel dashboard-action" href="register-facility.html">
+      <div class="action-icon">
+        <i class="fa-solid fa-hospital"></i>
+      </div>
+
+      <div>
+        <h3>Register medical facility</h3>
+        <p class="muted">
+          Add a clinic, health centre or hospital to your outreach network.
+        </p>
+      </div>
+    </a>
+
+    <a class="app-panel dashboard-action" href="facilities.html">
+      <div class="action-icon pink">
+        <i class="fa-solid fa-house-medical"></i>
+      </div>
+
+      <div>
+        <h3>My medical facilities</h3>
+        <p class="muted">
+          Search and review facilities you have registered.
+        </p>
+      </div>
+    </a>
+
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <i class="fa-solid fa-hospital"></i>
+  SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+</footer>
+
+<script type="module" src="script.js"></script>
+
+</body>
+</html>

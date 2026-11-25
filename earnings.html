@@ -1,0 +1,314 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <title>My earnings | SANYU HOSPITAL</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    .earnings-panel {
+      max-width:850px;
+      margin:25px auto;
+      padding:28px;
+      border-radius:22px;
+      background:#fff;
+      border:1px solid #e8eee9;
+      box-shadow:0 8px 28px rgba(20,50,30,.06);
+    }
+
+    .earnings-heading {
+      display:flex;
+      align-items:center;
+      gap:13px;
+      margin-bottom:9px;
+    }
+
+    .earnings-heading h1 {
+      margin:0;
+      color:#183b29;
+      font-size:25px;
+    }
+
+    .earnings-heading-icon {
+      width:48px;
+      height:48px;
+      display:grid;
+      place-items:center;
+      flex-shrink:0;
+      border-radius:15px;
+      background:#e8f5ed;
+      color:#087443;
+      font-size:21px;
+    }
+
+    .earnings-description {
+      margin:10px 0 25px;
+      color:#77847b;
+      font-size:13px;
+      line-height:1.8;
+    }
+
+    .earnings-total {
+      position:relative;
+      overflow:hidden;
+      padding:28px;
+      border-radius:21px;
+      background:linear-gradient(135deg,#087b49,#056139);
+      color:#fff;
+      box-shadow:0 10px 25px rgba(8,116,67,.18);
+    }
+
+    .earnings-total::after {
+      content:"";
+      position:absolute;
+      width:190px;
+      height:190px;
+      right:-65px;
+      top:-75px;
+      border:28px solid rgba(255,255,255,.08);
+      border-radius:50%;
+    }
+
+    .earnings-total-label {
+      display:flex;
+      align-items:center;
+      gap:9px;
+      color:rgba(255,255,255,.85);
+      font-size:13px;
+      font-weight:600;
+    }
+
+    .earnings-amount {
+      display:flex;
+      align-items:baseline;
+      flex-wrap:wrap;
+      gap:9px;
+      margin-top:15px;
+      position:relative;
+      z-index:1;
+    }
+
+    .earnings-currency {
+      font-size:15px;
+      font-weight:650;
+      color:rgba(255,255,255,.85);
+    }
+
+    .earnings-amount strong {
+      font-size:36px;
+      font-weight:850;
+      letter-spacing:-1px;
+      overflow-wrap:anywhere;
+    }
+
+    .earnings-note {
+      margin-top:22px;
+      padding:18px;
+      background:#f7faf8;
+      border:1px solid #e9f0eb;
+      border-radius:16px;
+    }
+
+    .earnings-note h3 {
+      display:flex;
+      align-items:center;
+      gap:9px;
+      margin:0 0 14px;
+      color:#284b35;
+      font-size:14px;
+    }
+
+    .commission-row {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+      padding:12px 0;
+      border-bottom:1px solid #e9eee9;
+      font-size:13px;
+    }
+
+    .commission-row:last-child {
+      border-bottom:0;
+      padding-bottom:0;
+    }
+
+    .commission-name {
+      display:flex;
+      align-items:center;
+      gap:9px;
+      color:#5c6d61;
+    }
+
+    .commission-name i { color:#087443; }
+
+    .commission-value {
+      color:#244b34;
+      font-weight:750;
+      white-space:nowrap;
+    }
+
+    .approval-note {
+      display:flex;
+      align-items:flex-start;
+      gap:11px;
+      margin-top:18px;
+      padding:14px 16px;
+      border-radius:13px;
+      background:#fff8e9;
+      color:#86621e;
+      font-size:12px;
+      line-height:1.7;
+    }
+
+    .approval-note i {
+      margin-top:3px;
+      font-size:15px;
+    }
+
+    @media(max-width:600px) {
+      .earnings-panel {
+        margin:15px 10px;
+        padding:20px;
+        border-radius:18px;
+      }
+
+      .earnings-heading h1 { font-size:22px; }
+
+      .earnings-total { padding:23px; }
+
+      .earnings-amount strong { font-size:30px; }
+
+      .commission-row { align-items:flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="app-topbar">
+    <a class="app-brand" href="dashboard.html">
+      <i class="fa-solid fa-hospital"></i>
+      <span>SANYU HOSPITAL · COMMUNITY PROGRAM</span>
+    </a>
+
+    <button class="app-btn secondary" id="logoutBtn" type="button">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Sign out
+    </button>
+  </header>
+
+  <nav class="app-nav">
+    <a href="dashboard.html">
+      <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+
+    <a href="register.html">
+      <i class="fa-solid fa-user-plus"></i> Register client
+    </a>
+
+    <a href="riders.html">
+      <i class="fa-solid fa-users"></i> My registrations
+    </a>
+
+    <a href="add-stage.html">
+      <i class="fa-solid fa-location-dot"></i> Add stage
+    </a>
+
+    <a href="stages.html">
+      <i class="fa-solid fa-map-location-dot"></i> Stages
+    </a>
+
+    <a href="register-facility.html">
+      <i class="fa-solid fa-hospital-user"></i> Register facility
+    </a>
+
+    <a href="facilities.html">
+      <i class="fa-solid fa-hospital"></i> My facilities
+    </a>
+
+    <a href="profile.html">
+      <i class="fa-solid fa-circle-user"></i> Profile
+    </a>
+  </nav>
+
+  <main class="app-shell">
+
+    <section class="app-panel earnings-panel">
+
+      <div class="earnings-heading">
+        <div class="earnings-heading-icon">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+        <h1>My earnings</h1>
+      </div>
+
+      <p class="earnings-description">
+        Track your commissions from successful community registrations.
+        Your earnings are calculated according to the programme's verification and approval requirements.
+      </p>
+
+      <div class="earnings-total">
+
+        <div class="earnings-total-label">
+          <i class="fa-solid fa-chart-line"></i>
+          Total recorded commissions
+        </div>
+
+        <div class="earnings-amount">
+          <span class="earnings-currency">UGX</span>
+          <strong id="totalEarnings">0</strong>
+        </div>
+
+      </div>
+
+      <div class="earnings-note">
+
+        <h3>
+          <i class="fa-solid fa-coins"></i>
+          Commission breakdown
+        </h3>
+
+        <div class="commission-row">
+          <span class="commission-name">
+            <i class="fa-solid fa-motorcycle"></i>
+            Verified boda boda rider
+          </span>
+          <span class="commission-value">UGX 1,000</span>
+        </div>
+
+        <div class="commission-row">
+          <span class="commission-name">
+            <i class="fa-solid fa-person-pregnant"></i>
+            Pregnant woman registration
+          </span>
+          <span class="commission-value">Subject to approval</span>
+        </div>
+
+      </div>
+
+      <div class="approval-note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>
+          Rider commission is UGX 1,000 after successful OTP verification.
+          Pregnant-woman commission is subject to hospital arrival and payment approval.
+        </span>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+  </footer>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>

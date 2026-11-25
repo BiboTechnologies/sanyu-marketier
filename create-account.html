@@ -1,0 +1,306 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <title>Create marketer account | SANYU HOSPITAL</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    body {
+      min-height:100vh;
+      background:linear-gradient(145deg,#f0f8f3,#f7faf8 55%,#eaf4ee);
+    }
+
+    .login-wrap {
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:30px 16px;
+    }
+
+    .register-card {
+      width:100%;
+      max-width:460px;
+      padding:35px;
+      background:#fff;
+      border:1px solid #e8eee9;
+      border-radius:25px;
+      box-shadow:0 15px 45px rgba(20,50,30,.09);
+    }
+
+    .brand-icon {
+      width:62px;
+      height:62px;
+      display:grid;
+      place-items:center;
+      margin:0 auto 18px;
+      border-radius:19px;
+      background:linear-gradient(145deg,#087b49,#056139);
+      color:#fff;
+      font-size:27px;
+      box-shadow:0 8px 20px rgba(8,116,67,.2);
+    }
+
+    .brand-name {
+      text-align:center;
+      color:#087443;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:1.5px;
+      margin-bottom:25px;
+    }
+
+    .register-card h1 {
+      margin:0 0 9px;
+      text-align:center;
+      color:#183b29;
+      font-size:25px;
+      font-weight:800;
+    }
+
+    .register-intro {
+      text-align:center;
+      color:#7b887f;
+      font-size:13px;
+      line-height:1.6;
+      margin:0 0 27px;
+    }
+
+    .app-field {
+      margin-bottom:17px;
+    }
+
+    .app-field label {
+      display:block;
+      margin-bottom:8px;
+      color:#405447;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .input-wrap {
+      position:relative;
+    }
+
+    .input-wrap i {
+      position:absolute;
+      left:15px;
+      top:50%;
+      transform:translateY(-50%);
+      color:#8a9a8f;
+      font-size:15px;
+      pointer-events:none;
+    }
+
+    .app-field input {
+      width:100%;
+      min-height:49px;
+      padding:12px 14px 12px 43px;
+      border:1px solid #e0e9e2;
+      border-radius:13px;
+      background:#fafcfb;
+      color:#263d2e;
+      font-size:14px;
+      outline:none;
+      transition:.2s ease;
+      box-sizing:border-box;
+    }
+
+    .app-field input:focus {
+      border-color:#087b49;
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(8,123,73,.09);
+    }
+
+    .app-field input::placeholder {
+      color:#aab5ad;
+    }
+
+    .register-submit {
+      width:100%;
+      min-height:51px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      margin-top:8px;
+      border:0;
+      border-radius:14px;
+      background:linear-gradient(145deg,#087b49,#056139);
+      color:#fff;
+      font-size:14px;
+      font-weight:750;
+      cursor:pointer;
+      box-shadow:0 6px 16px rgba(8,116,67,.18);
+      transition:.2s ease;
+    }
+
+    .register-submit:hover {
+      transform:translateY(-2px);
+      box-shadow:0 9px 20px rgba(8,116,67,.23);
+    }
+
+    .signin-link {
+      text-align:center;
+      margin:24px 0 0;
+      color:#7b887f;
+      font-size:13px;
+    }
+
+    .signin-link a {
+      color:#087443;
+      font-weight:750;
+      text-decoration:none;
+    }
+
+    .signin-link a:hover {
+      text-decoration:underline;
+    }
+
+    .security-note {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:7px;
+      margin-top:22px;
+      color:#8a978e;
+      font-size:11px;
+    }
+
+    .security-note i { color:#087443; }
+
+    @media(max-width:480px) {
+      .register-card {
+        padding:27px 21px;
+        border-radius:21px;
+      }
+
+      .register-card h1 { font-size:22px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="login-wrap">
+
+    <section class="app-panel register-card">
+
+      <div class="brand-icon">
+        <i class="fa-solid fa-hospital"></i>
+      </div>
+
+      <div class="brand-name">SANYU HOSPITAL</div>
+
+      <h1>Create marketer account</h1>
+
+      <p class="register-intro">
+        Join our community outreach programme.
+        Create your account to register clients and manage your activities.
+      </p>
+
+      <form id="marketeerRegistrationForm">
+
+        <div class="app-field">
+          <label for="marketeerFullName">Full name</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user"></i>
+            <input
+              id="marketeerFullName"
+              type="text"
+              placeholder="Enter your full name"
+              autocomplete="name"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="app-field">
+          <label for="marketeerPhone">Phone number</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-phone"></i>
+            <input
+              id="marketeerPhone"
+              type="tel"
+              placeholder="07XXXXXXXX"
+              autocomplete="tel"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="app-field">
+          <label for="marketeerEmail">Email address</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-envelope"></i>
+            <input
+              id="marketeerEmail"
+              type="email"
+              placeholder="Enter your email"
+              autocomplete="email"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="app-field">
+          <label for="marketeerPassword">Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input
+              id="marketeerPassword"
+              type="password"
+              placeholder="Create a password"
+              minlength="6"
+              autocomplete="new-password"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="app-field">
+          <label for="confirmPassword">Confirm password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-shield-halved"></i>
+            <input
+              id="confirmPassword"
+              type="password"
+              placeholder="Re-enter your password"
+              minlength="6"
+              autocomplete="new-password"
+              required
+            >
+          </div>
+        </div>
+
+        <button class="app-btn register-submit" type="submit">
+          <i class="fa-solid fa-user-plus"></i>
+          Create account
+        </button>
+
+      </form>
+
+      <p class="signin-link">
+        Already have an account?
+        <a href="index.html">Sign in</a>
+      </p>
+
+      <div class="security-note">
+        <i class="fa-solid fa-lock"></i>
+        Secure community programme registration
+      </div>
+
+    </section>
+
+  </main>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,325 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <title>My profile | SANYU HOSPITAL</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    .profile-page {
+      max-width:850px;
+      margin:25px auto;
+    }
+
+    .profile-card {
+      padding:30px;
+      border-radius:22px;
+      background:#fff;
+      border:1px solid #e8eee9;
+      box-shadow:0 8px 28px rgba(20,50,30,.06);
+    }
+
+    .profile-heading {
+      margin-bottom:25px;
+    }
+
+    .profile-heading h1 {
+      margin:0;
+      color:#183b29;
+      font-size:25px;
+    }
+
+    .profile-heading p {
+      margin:7px 0 0;
+      color:#7b887f;
+      font-size:13px;
+    }
+
+    .profile-summary {
+      display:flex;
+      align-items:center;
+      gap:18px;
+      padding:23px;
+      border-radius:19px;
+      background:linear-gradient(135deg,#edf8f0,#f8fbf8);
+      border:1px solid #e0eee4;
+    }
+
+    #profileInitials {
+      width:75px;
+      height:75px;
+      display:grid;
+      place-items:center;
+      flex-shrink:0;
+      border-radius:23px;
+      background:linear-gradient(145deg,#087b49,#056139);
+      color:#fff;
+      font-size:26px;
+      font-weight:850;
+      box-shadow:0 7px 18px rgba(8,116,67,.19);
+    }
+
+    .profile-identity h2 {
+      margin:0 0 7px;
+      color:#20432e;
+      font-size:21px;
+    }
+
+    .profile-identity p {
+      margin:0;
+      color:#78867d;
+      font-size:13px;
+    }
+
+    .profile-section-title {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:28px 0 15px;
+      color:#304c39;
+      font-size:14px;
+      font-weight:750;
+    }
+
+    .profile-section-title i {
+      color:#087443;
+    }
+
+    .profile-actions {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:13px;
+    }
+
+    .profile-action {
+      min-height:76px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:15px;
+      border:1px solid #e7eee8;
+      border-radius:16px;
+      background:#fff;
+      color:#344c3b;
+      text-align:left;
+      cursor:pointer;
+      transition:all .22s ease;
+    }
+
+    .profile-action:hover {
+      border-color:#b9dcc5;
+      background:#f6fbf7;
+      transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(20,50,30,.06);
+    }
+
+    .profile-action-icon {
+      width:43px;
+      height:43px;
+      display:grid;
+      place-items:center;
+      flex-shrink:0;
+      border-radius:13px;
+      background:#eaf5ed;
+      color:#087443;
+      font-size:17px;
+    }
+
+    .profile-action-content {
+      flex:1;
+      min-width:0;
+    }
+
+    .profile-action-content strong {
+      display:block;
+      margin-bottom:4px;
+      color:#2b4533;
+      font-size:13px;
+    }
+
+    .profile-action-content span {
+      display:block;
+      color:#8a968d;
+      font-size:11px;
+      line-height:1.5;
+    }
+
+    .profile-action-arrow {
+      color:#9aa69d;
+      font-size:12px;
+    }
+
+    @media(max-width:600px) {
+      .profile-page { margin:15px 10px; }
+
+      .profile-card {
+        padding:20px;
+        border-radius:18px;
+      }
+
+      .profile-heading h1 { font-size:22px; }
+
+      .profile-summary {
+        padding:17px;
+        gap:13px;
+      }
+
+      #profileInitials {
+        width:62px;
+        height:62px;
+        border-radius:19px;
+        font-size:22px;
+      }
+
+      .profile-identity h2 { font-size:18px; }
+
+      .profile-actions {
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="app-topbar">
+    <a class="app-brand" href="dashboard.html">
+      <i class="fa-solid fa-hospital"></i>
+      <span>SANYU HOSPITAL · COMMUNITY PROGRAM</span>
+    </a>
+
+    <button class="app-btn secondary" id="logoutBtn" type="button">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Sign out
+    </button>
+  </header>
+
+  <nav class="app-nav">
+
+    <a href="dashboard.html">
+      <i class="fa-solid fa-house"></i> Dashboard
+    </a>
+
+    <a href="register.html">
+      <i class="fa-solid fa-user-plus"></i> Register client
+    </a>
+
+    <a href="riders.html">
+      <i class="fa-solid fa-users"></i> My registrations
+    </a>
+
+    <a href="add-stage.html">
+      <i class="fa-solid fa-location-dot"></i> Add stage
+    </a>
+
+    <a href="stages.html">
+      <i class="fa-solid fa-map-location-dot"></i> Stages
+    </a>
+
+    <a href="register-facility.html">
+      <i class="fa-solid fa-hospital-user"></i> Register facility
+    </a>
+
+    <a href="facilities.html">
+      <i class="fa-solid fa-hospital"></i> My facilities
+    </a>
+
+    <a href="profile.html" class="active">
+      <i class="fa-solid fa-circle-user"></i> Profile
+    </a>
+
+  </nav>
+
+  <main class="app-shell">
+
+    <section class="app-panel profile-card profile-page">
+
+      <div class="profile-heading">
+        <h1>My profile</h1>
+        <p>Manage your account and programme preferences.</p>
+      </div>
+
+      <div class="profile-summary">
+
+        <div id="profileInitials" class="facility-card-icon">M</div>
+
+        <div class="profile-identity">
+          <h2 id="profileName">Loading...</h2>
+          <p>
+            <i class="fa-solid fa-user-check" style="color:#087443"></i>
+            Community programme marketer
+          </p>
+        </div>
+
+      </div>
+
+      <h3 class="profile-section-title">
+        <i class="fa-solid fa-sliders"></i>
+        Account settings
+      </h3>
+
+      <div class="app-actions profile-actions">
+
+        <button class="app-btn secondary profile-action" id="myInformationBtn" type="button">
+          <span class="profile-action-icon">
+            <i class="fa-solid fa-id-card"></i>
+          </span>
+          <span class="profile-action-content">
+            <strong>My information</strong>
+            <span>View your account details</span>
+          </span>
+          <i class="fa-solid fa-chevron-right profile-action-arrow"></i>
+        </button>
+
+        <button class="app-btn secondary profile-action" id="changePasswordBtn" type="button">
+          <span class="profile-action-icon">
+            <i class="fa-solid fa-lock"></i>
+          </span>
+          <span class="profile-action-content">
+            <strong>Reset password</strong>
+            <span>Secure your account</span>
+          </span>
+          <i class="fa-solid fa-chevron-right profile-action-arrow"></i>
+        </button>
+
+        <button class="app-btn secondary profile-action" id="notificationsBtn" type="button">
+          <span class="profile-action-icon">
+            <i class="fa-solid fa-bell"></i>
+          </span>
+          <span class="profile-action-content">
+            <strong>Notifications</strong>
+            <span>Manage programme notifications</span>
+          </span>
+          <i class="fa-solid fa-chevron-right profile-action-arrow"></i>
+        </button>
+
+        <button class="app-btn secondary profile-action" id="aboutBtn" type="button">
+          <span class="profile-action-icon">
+            <i class="fa-solid fa-circle-info"></i>
+          </span>
+          <span class="profile-action-content">
+            <strong>About</strong>
+            <span>Learn about the programme</span>
+          </span>
+          <i class="fa-solid fa-chevron-right profile-action-arrow"></i>
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+  </footer>
+
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>

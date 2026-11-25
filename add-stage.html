@@ -1,0 +1,222 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#075985">
+
+<title>Register Boda Stage | SANYU HOSPITAL</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+.stage-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 25px;
+}
+
+.stage-heading-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #eaf2ff;
+  color: #2877d4;
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+}
+
+.stage-field-icon {
+  color: #087443;
+  margin-right: 6px;
+}
+
+.stage-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 150px;
+}
+
+.stage-panel {
+  max-width: 850px;
+  margin: auto;
+}
+
+.stage-intro {
+  color: #718078;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.stage-panel .app-field input,
+.stage-panel .app-field textarea {
+  border-radius: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="app-topbar">
+  <a class="app-brand" href="dashboard.html">
+    <i class="fa-solid fa-hospital"></i>
+    SANYU HOSPITAL · COMMUNITY PROGRAM
+  </a>
+
+  <button class="app-btn secondary" id="logoutBtn" type="button">
+    <i class="fa-solid fa-right-from-bracket"></i>
+    Sign out
+  </button>
+</header>
+
+<!-- NAVIGATION -->
+<nav class="app-nav">
+
+  <a href="dashboard.html">
+    <i class="fa-solid fa-house"></i>
+    Dashboard
+  </a>
+
+  <a href="register.html">
+    <i class="fa-solid fa-user-plus"></i>
+    Register client
+  </a>
+
+  <a href="riders.html">
+    <i class="fa-solid fa-motorcycle"></i>
+    My registrations
+  </a>
+
+  <a href="add-stage.html" class="active">
+    <i class="fa-solid fa-location-dot"></i>
+    Add stage
+  </a>
+
+  <a href="stages.html">
+    <i class="fa-solid fa-map-location-dot"></i>
+    Stages
+  </a>
+
+  <a href="register-facility.html">
+    <i class="fa-solid fa-hospital"></i>
+    Register facility
+  </a>
+
+  <a href="facilities.html">
+    <i class="fa-solid fa-house-medical"></i>
+    My facilities
+  </a>
+
+  <a href="profile.html">
+    <i class="fa-solid fa-user"></i>
+    Profile
+  </a>
+
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="app-shell">
+
+<section class="app-panel stage-panel">
+
+  <div class="stage-heading">
+    <div class="stage-heading-icon">
+      <i class="fa-solid fa-map-location-dot"></i>
+    </div>
+
+    <div>
+      <h1>Register a Boda Boda stage</h1>
+      <p class="stage-intro">
+        Add a new stage to your community outreach network.
+      </p>
+    </div>
+  </div>
+
+  <form id="stageRegistrationForm">
+
+    <div class="app-grid">
+
+      <div class="app-field">
+        <label for="stageName">
+          <i class="fa-solid fa-flag stage-field-icon"></i>
+          Stage name
+        </label>
+        <input id="stageName" placeholder="Enter stage name" required>
+      </div>
+
+      <div class="app-field">
+        <label for="stageArea">
+          <i class="fa-solid fa-location-dot stage-field-icon"></i>
+          Area
+        </label>
+        <input id="stageArea" placeholder="Enter area" required>
+      </div>
+
+      <div class="app-field">
+        <label for="chairmanName">
+          <i class="fa-solid fa-user-tie stage-field-icon"></i>
+          Chairman name
+        </label>
+        <input id="chairmanName" placeholder="Enter chairman's full name" required>
+      </div>
+
+      <div class="app-field">
+        <label for="chairmanPhone">
+          <i class="fa-solid fa-phone stage-field-icon"></i>
+          Chairman phone
+        </label>
+        <input
+          id="chairmanPhone"
+          type="tel"
+          placeholder="07XXXXXXXX"
+          required>
+      </div>
+
+      <div class="app-field">
+        <label for="stageDistrict">
+          <i class="fa-solid fa-map stage-field-icon"></i>
+          District
+        </label>
+        <input id="stageDistrict" placeholder="Enter district">
+      </div>
+
+    </div>
+
+    <div class="app-field">
+      <label for="stageNotes">
+        <i class="fa-solid fa-note-sticky stage-field-icon"></i>
+        Additional notes
+      </label>
+      <textarea
+        id="stageNotes"
+        rows="3"
+        placeholder="Any additional information about this stage..."></textarea>
+    </div>
+
+    <button class="app-btn stage-submit" type="submit">
+      <i class="fa-solid fa-floppy-disk"></i>
+      Save stage
+    </button>
+
+  </form>
+
+</section>
+
+</main>
+
+<footer class="app-footer">
+  <i class="fa-solid fa-hospital"></i>
+  SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+</footer>
+
+<script type="module" src="script.js"></script>
+
+</body>
+</html>

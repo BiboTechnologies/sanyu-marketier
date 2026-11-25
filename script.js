@@ -1,222 +1,2903 @@
- 
- 
- // --- FIREBASE INITIALIZATION (Web v9 Modular SDK) ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js";
+import { getDatabase, query, limitToFirst, orderByKey, orderByChild, equalTo, ref, remove, push, get, update, onValue, child, set, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js";
+import {
+    getAuth,
+    onAuthStateChanged,
+    sendPasswordResetEmail,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    RecaptchaVerifier,
+    signInWithPhoneNumber
+} from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCi_hufIZTzsYtdPGQtvtmKmAkkrydmn_A",
-  authDomain: "abbah-83a7b.firebaseapp.com",
-  databaseURL: "https://abbah-83a7b-default-rtdb.firebaseio.com",
-  projectId: "abbah-83a7b",
-  storageBucket: "abbah-83a7b.appspot.com",
-  messagingSenderId: "379729759051",
-  appId: "1:379729759051:web:e75528d61b02d1e4f536ce",
-  measurementId: "G-H41J2WMR6S"
+    apiKey: "AIzaSyCi_hufIZTzsYtdPGQtvtmKmAkkrydmn_A",
+    authDomain: "abbah-83a7b.firebaseapp.com",
+    databaseURL: "https://abbah-83a7b-default-rtdb.firebaseio.com",
+    projectId: "abbah-83a7b",
+    storageBucket: "abbah-83a7b.appspot.com",
+    messagingSenderId: "379729759051",
+    appId: "1:379729759051:web:e75528d61b02d1e4f536ce",
+    measurementId: "G-H41J2WMR6S"
 };
 
-// Initialize Firebase and DB
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-// --- FIREBASE SAVE FUNCTION ---
-async function saveReferralToFirebase(referralId, data) {
-  try {
-    const newRef = ref(db, 'referrals/' + referralId);
-    await set(newRef, data);
-    console.log('Saved to Firebase:', referralId);
-    return true;
-  } catch (err) {
-    console.error('Firebase save failed', err);
-    alert('⚠ Referral saved locally but Firebase failed.');
-    return false;
-  }
+const database = getDatabase(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+const $ = id => document.getElementById(id);
+
+// Separate Firebase app used only for client phone OTP.
+// This prevents OTP verification from replacing the marketer's login.
+const phoneVerificationApp = initializeApp(
+    firebaseConfig,
+    "phoneVerificationApp"
+);
+
+const phoneAuth = getAuth(phoneVerificationApp);
+phoneAuth.useDeviceLanguage();
+
+
+const loginForm = $("loginForm");
+
+if (loginForm) {
+    onAuthStateChanged(auth, user => {
+        if (user) window.location.href = "dashboard.html";
+    });
+
+    loginForm.addEventListener("submit", async e => {
+        e.preventDefault();
+
+        const email = $("loginEmail").value.trim();
+        const password = $("loginPassword").value;
+
+        if (!email || !password) {
+            showToast("Enter your email and password.", "error");
+            return;
+        }
+
+        try {
+            showLoader("Signing in...");
+            await signInWithEmailAndPassword(auth, email, password);
+            window.location.href = "dashboard.html";
+        } catch (error) {
+            console.error(error);
+            hideLoader();
+
+            let message = "Unable to login.";
+
+            if (error.code === "auth/user-not-found") message = "Account not found.";
+            else if (error.code === "auth/wrong-password") message = "Incorrect password.";
+            else if (error.code === "auth/invalid-email") message = "Enter a valid email address.";
+            else if (error.code === "auth/invalid-login-credentials") message = "Incorrect email or password.";
+            else if (error.code === "auth/too-many-requests") message = "Too many attempts. Try again later.";
+
+            showToast(message, "error");
+        }
+    });
+}
+
+$("createAccountBtn")?.addEventListener("click", () => {
+    window.location.href = "create-account.html";
+});
+
+
+const marketerRegistrationForm = $("marketeerRegistrationForm");
+
+if (marketerRegistrationForm) {
+    marketerRegistrationForm.addEventListener("submit", async e => {
+        e.preventDefault();
+
+        const fullName = $("marketeerFullName").value.trim();
+        const phone = normalizePhone($("marketeerPhone").value);
+        const email = $("marketeerEmail").value.trim().toLowerCase();
+        const password = $("marketeerPassword").value;
+        const confirmPassword = $("confirmPassword").value;
+
+        if (!fullName || !phone || !email || !password) {
+            showToast("Complete all required fields.", "error");
+            return;
+        }
+
+        if (phone.length !== 12 || !phone.startsWith("256")) {
+            showToast("Enter a valid Ugandan phone number.", "error");
+            return;
+        }
+
+        if (password.length < 6) {
+            showToast("Password must have at least 6 characters.", "error");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showToast("Passwords do not match.", "error");
+            return;
+        }
+
+        try {
+            showLoader("Creating account...");
+
+            const credential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = credential.user;
+
+            await set(ref(database, `bodaProgram/marketers/${user.uid}`), {
+                uid: user.uid,
+                fullName,
+                phone,
+                email,
+                status: "active",
+                createdAt: Date.now()
+            });
+
+            hideLoader();
+            showToast("Account created successfully.", "success");
+
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 700);
+
+        } catch (error) {
+            console.error(error);
+            hideLoader();
+
+            let message = "Failed to create account.";
+
+            if (error.code === "auth/email-already-in-use") message = "That email already has an account.";
+            else if (error.code === "auth/invalid-email") message = "Enter a valid email address.";
+            else if (error.code === "auth/weak-password") message = "Choose a stronger password.";
+
+            showToast(message, "error");
+        }
+    });
 }
 
 
-// DOM refs
-  const refTypeRadios = document.getElementsByName('refType');
-  const marketerSection = document.getElementById('referrerMarketer');
-  const clinicSection = document.getElementById('referrerClinic');
-  const form = document.getElementById('referralForm');
-  const output = document.getElementById('output');
-  const previewArea = document.getElementById('previewArea');
-  const previewBtn = document.getElementById('previewBtn');
-  const saveLocalBtn = document.getElementById('saveLocal');
 
-  function updateReferrerView(){
-    const type = document.querySelector('input[name="refType"]:checked').value;
-    if(type === 'marketer'){
-      marketerSection.classList.remove('hidden');
-      clinicSection.classList.add('hidden');
-    } else {
-      marketerSection.classList.add('hidden');
-      clinicSection.classList.remove('hidden');
-    }
-  }
 
-  // initial
-  updateReferrerView();
-  refTypeRadios.forEach(r => r.addEventListener('change', updateReferrerView));
 
-  function gatherFormData(){
-    const refType = document.querySelector('input[name="refType"]:checked').value;
-    const attachments = Array.from(document.getElementById('attachments').files).map(f => ({name:f.name,size:f.size}));
 
-    const data = {
-      referralDate: document.getElementById('refDate').value || new Date().toISOString().slice(0,10),
-      referralType: refType,
-      referrer: {},
-      patient: {
-        name: document.getElementById('patientName').value.trim(),
-        dob: document.getElementById('patientDob').value || null,
-        gender: document.getElementById('patientGender').value || null,
-        phone: document.getElementById('patientPhone').value.trim(),
-        email: document.getElementById('patientEmail').value.trim(),
-        address: document.getElementById('patientAddress').value.trim(),
-      },
-      reason: document.getElementById('refReason').value.trim(),
-      preferredClinic: document.getElementById('preferredClinic').value.trim(),
-      urgency: document.getElementById('urgency').value,
-      attachments,
-      followUpPhone: document.getElementById('followPhone').value.trim(),
-      commission: document.getElementById('commission').value || null,
-      notes: document.getElementById('extraNotes').value.trim()
-    };
+function normalizePhone(phone) {
+    let number = String(phone || "").replace(/\D/g, "");
+    if (number.startsWith("0") && number.length === 10) number = "256" + number.substring(1);
+    else if (number.length === 9) number = "256" + number;
+    return number;
+}
 
-    if(refType === 'marketer'){
-      data.referrer = {
-        type: 'marketer',
-        name: document.getElementById('marketerName').value.trim(),
-        id: document.getElementById('marketerId').value.trim(),
-        phone: document.getElementById('marketerPhone').value.trim()
-      };
-    } else {
-      data.referrer = {
-        type: 'clinic',
-        clinicName: document.getElementById('clinicName').value.trim(),
-        contactPerson: document.getElementById('clinicContact').value.trim(),
-        phone: document.getElementById('clinicPhone').value.trim()
-      };
+function formatPhone(phone) {
+    const number = normalizePhone(phone);
+    if (number.length !== 12) return phone || "";
+    return `0${number.substring(3, 6)} ${number.substring(6, 9)} ${number.substring(9, 12)}`;
+}
+
+function formatMoney(amount) {
+    return Number(amount || 0).toLocaleString("en-UG");
+}
+
+function formatDate(timestamp) {
+    if (!timestamp) return "-";
+    return new Date(timestamp).toLocaleDateString("en-UG", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
+}
+
+function escapeHTML(value = "") {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function showLoader(message = "Please wait...") {
+    let loader = $("globalLoader");
+
+    if (!loader) {
+        loader = document.createElement("div");
+        loader.id = "globalLoader";
+        loader.className = "loader-overlay";
+        loader.innerHTML = `<div class="loader"></div><p id="loaderMessage"></p>`;
+        document.body.appendChild(loader);
     }
 
-    return data;
-  }
+    $("loaderMessage").textContent = message;
+    loader.classList.remove("hidden");
+}
 
-  function validate(data){
-    const errors = [];
-    if(!data.patient.name) errors.push('Patient name is required.');
-    if(!data.patient.phone) errors.push('Patient phone is required.');
-    if(!data.reason) errors.push('Reason for referral is required.');
-    // Basic phone char check
-    if(data.patient.phone && !/^\+?[0-9 \-]{6,20}$/.test(data.patient.phone)) errors.push('Patient phone looks invalid.');
-    return errors;
-  }
+function hideLoader() {
+    $("globalLoader")?.classList.add("hidden");
+}
 
-  previewBtn.addEventListener('click', ()=>{
-    const data = gatherFormData();
-    const errors = validate(data);
-    if(errors.length) {
-      previewArea.textContent = 'Validation errors:\n- ' + errors.join('\n- ');
-    } else {
-      previewArea.textContent = JSON.stringify(data, null, 2);
+function showToast(message, type = "info") {
+    document.querySelector(".toast")?.remove();
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+
+
+
+
+
+const stageRegistrationForm = $("stageRegistrationForm");
+
+if (stageRegistrationForm) {
+    stageRegistrationForm.addEventListener("submit", async e => {
+        e.preventDefault();
+
+        const user = auth.currentUser;
+        if (!user) {
+            showToast("Please login again.", "error");
+            return;
+        }
+
+        const stageName = $("stageName").value.trim();
+        const area = $("stageArea").value.trim();
+        const chairmanName = $("chairmanName").value.trim();
+        const chairmanPhone = normalizePhone($("chairmanPhone").value);
+        const district = $("stageDistrict").value.trim();
+        const notes = $("stageNotes").value.trim();
+
+        if (!stageName || !area || !chairmanName || !chairmanPhone) {
+            showToast("Complete all required fields.", "error");
+            return;
+        }
+
+        if (chairmanPhone.length !== 12 || !chairmanPhone.startsWith("256")) {
+            showToast("Enter a valid Ugandan phone number.", "error");
+            return;
+        }
+
+        try {
+            showLoader("Registering stage...");
+
+            const newStageRef = push(ref(database, "bodaProgram/stages"));
+
+            await set(newStageRef, {
+                stageId: newStageRef.key,
+                stageName,
+                area,
+                district,
+                chairmanName,
+                chairmanPhone,
+                notes,
+                createdBy: user.uid,
+                createdAt: Date.now(),
+                status: "active"
+            });
+
+            hideLoader();
+            showToast("Stage registered successfully.", "success");
+            stageRegistrationForm.reset();
+
+            setTimeout(() => {
+                window.location.href = "stages.html";
+            }, 800);
+
+        } catch (error) {
+            console.error(error);
+            hideLoader();
+            showToast("Failed to register stage.", "error");
+        }
+    });
+}
+
+
+
+// ================= COMMUNITY REGISTRATION =================
+
+const communityRegistrationForm = $("communityRegistrationForm");
+
+if (communityRegistrationForm) {
+    communityRegistrationForm.addEventListener("submit", async e => {
+        e.preventDefault();
+
+        const user = auth.currentUser;
+
+        if (!user) {
+            showToast("Please login again.", "error");
+            return;
+        }
+
+        const type = $("registrationType").value;
+        const fullName = $("clientName").value.trim();
+        const phone = normalizePhone($("clientPhone").value);
+        const nationalId = $("clientNationalId")?.value.trim() || "";
+
+        if (!fullName || !phone) {
+            showToast("Enter the name and phone number.", "error");
+            return;
+        }
+
+        if (phone.length !== 12 || !phone.startsWith("256")) {
+            showToast("Enter a valid Ugandan phone number.", "error");
+            return;
+        }
+
+        if (type !== "rider" && type !== "pregnant") {
+            showToast("Select a registration category.", "error");
+            return;
+        }
+
+        try {
+            showLoader("Checking registration...");
+
+            // Check whether this phone is already registered
+            const phoneIndexRef = ref(
+                database,
+                `bodaProgram/phoneIndex/${phone}`
+            );
+
+            const phoneSnapshot = await get(phoneIndexRef);
+
+            if (phoneSnapshot.exists()) {
+                hideLoader();
+                showToast(
+                    "This phone number is already registered.",
+                    "error"
+                );
+                return;
+            }
+
+            // Get marketer information
+            const marketerSnapshot = await get(
+                ref(
+                    database,
+                    `bodaProgram/marketers/${user.uid}`
+                )
+            );
+
+            const marketer = marketerSnapshot.exists()
+                ? marketerSnapshot.val()
+                : {};
+
+            const marketerName =
+                marketer.fullName ||
+                user.email ||
+                "Marketer";
+
+            // ================= RIDER =================
+
+            if (type === "rider") {
+                const stageSelect = $("stageSelect");
+                const stageId = stageSelect?.value || "";
+
+                if (!stageId) {
+                    hideLoader();
+                    showToast(
+                        "Select the rider's Boda Boda stage.",
+                        "error"
+                    );
+                    return;
+                }
+
+                const stageSnapshot = await get(
+                    ref(
+                        database,
+                        `bodaProgram/stages/${stageId}`
+                    )
+                );
+
+                if (!stageSnapshot.exists()) {
+                    hideLoader();
+                    showToast(
+                        "Selected stage was not found.",
+                        "error"
+                    );
+                    return;
+                }
+
+                const stage = stageSnapshot.val();
+
+                const riderRef = push(
+                    ref(database, "bodaProgram/riders")
+                );
+
+                const riderId = riderRef.key;
+
+                showLoader("Registering rider...");
+
+                await set(riderRef, {
+                    riderId,
+                    fullName,
+                    phone,
+                    phoneNormalized: phone,
+                    nationalId,
+                    stageId,
+                    stageName: stage.stageName || "",
+                    marketerId: user.uid,
+                    marketerName,
+                    otpVerified: false,
+                    verifiedAt: null,
+                    registeredAt: Date.now(),
+                    status: "pending"
+                });
+
+                await set(phoneIndexRef, {
+                    registrationId: riderId,
+                    type: "rider"
+                });
+
+                // Store rider information for OTP page
+                sessionStorage.setItem(
+                    "pendingRegistrationId",
+                    riderId
+                );
+
+                sessionStorage.setItem(
+                    "pendingRegistrationType",
+                    "rider"
+                );
+
+                sessionStorage.setItem(
+                    "pendingRegistrationPhone",
+                    phone
+                );
+
+                sessionStorage.setItem(
+                    "pendingRegistrationName",
+                    fullName
+                );
+            }
+
+            // ================= PREGNANT WOMAN =================
+
+            else {
+                const womanRef = push(
+                    ref(
+                        database,
+                        "bodaProgram/pregnantWomen"
+                    )
+                );
+
+                const womanId = womanRef.key;
+
+                showLoader(
+                    "Registering pregnant woman..."
+                );
+
+                await set(womanRef, {
+                    registrationId: womanId,
+                    fullName,
+                    phone,
+                    phoneNormalized: phone,
+                    marketerId: user.uid,
+                    marketerName,
+
+                    // Hospital/reception verification
+                    arrived: false,
+                    arrivedAt: null,
+
+                    paymentConfirmed: false,
+                    paymentConfirmedAt: null,
+
+                    approved: false,
+                    approvedAt: null,
+                    approvedBy: null,
+
+                    registeredAt: Date.now(),
+                    status: "registered"
+                });
+
+                await set(phoneIndexRef, {
+                    registrationId: womanId,
+                    type: "pregnant"
+                });
+
+                // Used by success page
+                sessionStorage.setItem(
+                    "pendingRegistrationId",
+                    womanId
+                );
+
+                sessionStorage.setItem(
+                    "pendingRegistrationType",
+                    "pregnant"
+                );
+
+                sessionStorage.setItem(
+                    "pendingRegistrationPhone",
+                    phone
+                );
+
+                sessionStorage.setItem(
+                    "pendingRegistrationName",
+                    fullName
+                );
+            }
+
+            hideLoader();
+
+            showToast(
+                "Registration saved.",
+                "success"
+            );
+
+            // Rider goes to OTP.
+            // Pregnant woman does NOT use OTP.
+            setTimeout(() => {
+                if (type === "rider") {
+                    window.location.href =
+                        "verify-otp.html";
+                } else {
+                    window.location.href =
+                        "registration-success.html";
+                }
+            }, 600);
+
+        } catch (error) {
+            console.error(
+                "Registration error:",
+                error
+            );
+
+            hideLoader();
+
+            showToast(
+                "Failed to save registration.",
+                "error"
+            );
+        }
+    });
+}
+
+
+
+function loadStages() {
+    const stageList = $("stageList");
+    const stageSelect = $("stageSelect");
+
+    onValue(ref(database, "bodaProgram/stages"), snapshot => {
+        const stages = [];
+
+        snapshot.forEach(childSnapshot => {
+            const stage = childSnapshot.val();
+            if (stage.status === "active") stages.push(stage);
+        });
+
+        stages.sort((a, b) => (a.stageName || "").localeCompare(b.stageName || ""));
+
+        if (stageSelect) {
+            stageSelect.innerHTML = `<option value="">Select rider's stage</option>`;
+
+            stages.forEach(stage => {
+                stageSelect.innerHTML += `
+                    <option value="${stage.stageId}">
+                        ${escapeHTML(stage.stageName)} - ${escapeHTML(stage.area)}
+                    </option>
+                `;
+            });
+        }
+
+        if (stageList) displayStages(stages);
+    }, error => {
+        console.error(error);
+        showToast("Failed to load stages.", "error");
+    });
+}
+
+function displayStages(stages) {
+    const stageList = $("stageList");
+    if (!stageList) return;
+
+    if (!stages.length) {
+        stageList.innerHTML = `
+            <div class="stage-empty">
+                <div class="stage-empty-icon">📍</div>
+                <h3>No stages registered</h3>
+                <p>Your registered Boda Boda stages will appear here.</p>
+                <a href="add-stage.html" class="stage-empty-button">
+                    + Register Stage
+                </a>
+            </div>
+        `;
+        return;
     }
-    output.classList.remove('hidden');
-  });
 
-  saveLocalBtn.addEventListener('click', ()=>{
-    const data = gatherFormData();
-    const errors = validate(data);
-    if(errors.length){
-      alert('Cannot save: ' + errors.join('\n'));
-      return;
-    }
-    // save to localStorage as an array
-    const key = 'patientReferrals';
-    const existing = JSON.parse(localStorage.getItem(key) || '[]');
-    existing.push({...data, savedAt: new Date().toISOString()});
-    localStorage.setItem(key, JSON.stringify(existing));
-    alert('Saved locally. You can export or view saved referrals in console (localStorage key: ' + key + ').');
-  });
+    stageList.innerHTML = stages.map(stage => {
+        const stageName = escapeHTML(stage.stageName || "Unnamed Stage");
+        const area = escapeHTML(stage.area || "Location not provided");
+        const district = stage.district
+            ? escapeHTML(stage.district)
+            : "";
 
- form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+        const chairman = escapeHTML(
+            stage.chairmanName || "Not provided"
+        );
 
-  const data = gatherFormData();
-  data.referralDate = new Date().toISOString().split("T")[0];
+        const phone = stage.chairmanPhone
+            ? formatPhone(stage.chairmanPhone)
+            : "Not provided";
 
-  const errors = validate(data);
-  if (errors.length) {
-    alert('Please fix errors:\n' + errors.join('\n'));
-    return;
-  }
+        const callPhone = stage.chairmanPhone
+            ? "+" + normalizePhone(stage.chairmanPhone)
+            : "";
 
-  const referralId = 'REF-' + Date.now();
-  data.referralId = referralId;
+        return `
+            <div
+                class="stage-card"
+                data-name="${escapeHTML((stage.stageName || "").toLowerCase())}"
+                data-area="${escapeHTML((stage.area || "").toLowerCase())}"
+            >
 
-  const location = await new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve(null);
-    navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      err => resolve(null)
-    );
-  });
-  data.location = location;
+                <!-- LEFT SIDE -->
+                <div class="stage-left">
 
-  // ✅ This works now
-  const savedOk = await saveReferralToFirebase(referralId, data);
+                    <div class="stage-title-row">
+                        <div class="stage-location-icon">
+                            📍
+                        </div>
 
-  if (savedOk) {
-    const slipWindow = window.open('', '_blank');
-    slipWindow.document.write(`
-      <h2 style="text-align:center;">SANYU HOSPITAL – Referral Slip</h2>
-      <hr/>
-      <p><b>Referral ID:</b> ${referralId}</p>
-      <p><b>Date:</b> ${data.referralDate}</p>
-      <p><b>Patient:</b> ${data.patient.name}</p>
-      <p><b>Phone:</b> ${data.patient.phone}</p>
-      <p><b>Reason:</b> ${data.reason}</p>
-      <p><b>Urgency:</b> ${data.urgency}</p>
-      <p><b>Referred By:</b> ${data.referrer.name || data.referrer.clinicName}</p>
-      ${location ? `<p><b>Location:</b> Lat ${location.lat}, Lng ${location.lng}</p>` : ``}
-      <hr/>
-      <p style="font-size:13px;text-align:center;">Thank you for trusting Sanyu Hospital.</p>
-    `);
-   // slipWindow.print();
-  }
+                        <div class="stage-title-content">
+                            <div class="stage-name-line">
+                                <h3>${stageName}</h3>
 
-  previewArea.textContent = JSON.stringify(data, null, 2);
-  output.classList.remove('hidden');
+                                <span class="stage-active-badge">
+                                    <i></i>
+                                    Active
+                                </span>
+                            </div>
 
-  // Clear patient fields only
-  [
-    'patientName','patientDob','patientGender','patientPhone','patientEmail',
-    'patientAddress','refReason','preferredClinic','urgency','attachments',
-    'followPhone','commission','extraNotes'
-  ].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = el.type === 'file' ? null : '';
-  });
+                            <p class="stage-location">
+                                ${area}${district ? `, ${district}` : ""}
+                            </p>
+                        </div>
+                    </div>
 
-  alert('Referral submitted successfully.');
+                    <div class="stage-chairman">
+                        <span>STAGE CHAIRMAN</span>
+                        <strong>${chairman}</strong>
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT SIDE -->
+                <div class="stage-right">
+
+                    <div class="stage-phone">
+                        <span>PHONE NUMBER</span>
+                        <strong>
+                            ${escapeHTML(phone)}
+                        </strong>
+                    </div>
+
+                    ${
+                        callPhone
+                            ? `
+                            <a
+                                href="tel:${callPhone}"
+                                class="stage-call-button"
+                                onclick="event.stopPropagation()"
+                            >
+                                <span>☎</span>
+                                Call
+                            </a>
+                            `
+                            : `
+                            <button
+                                class="stage-call-button disabled"
+                                disabled
+                            >
+                                No Phone
+                            </button>
+                            `
+                    }
+
+                </div>
+
+            </div>
+        `;
+    }).join("");
+}
+const stageSearch = $("stageSearch");
+
+stageSearch?.addEventListener("input", () => {
+    const search = stageSearch.value.toLowerCase().trim();
+
+    document.querySelectorAll(".stage-card").forEach(card => {
+        const name = card.dataset.name || "";
+        const area = card.dataset.area || "";
+        card.style.display = name.includes(search) || area.includes(search) ? "" : "none";
+    });
 });
 
-  // small helper to export saved referrals as JSON file
-  function exportSaved(){
-    const key = 'patientReferrals';
-    const existing = JSON.parse(localStorage.getItem(key) || '[]');
-    const blob = new Blob([JSON.stringify(existing, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'referrals.json';
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  }
+if ($("stageList") || $("stageSelect")) loadStages();
 
-  // Expose for console convenience
-  window.ReferralForm = {gatherFormData, validate, exportSaved};
 
-// Smooth fade‑in animation on scroll
-const animatedItems=document.querySelectorAll('.section, h3, .row');
-const observer=new IntersectionObserver((entries)=>{
- entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity=1;e.target.style.transform='translateY(0)';}})
-},{threshold:0.1});
-animatedItems.forEach(el=>{el.style.opacity=0;el.style.transform='translateY(15px)';el.style.transition='0.6s ease';observer.observe(el);});
+// ================= DASHBOARD =================
+
+const dashboardName = $("marketeerName");
+
+if (dashboardName) {
+
+    onAuthStateChanged(auth, async user => {
+
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        try {
+
+            // ================= GREETING =================
+
+            const hour = new Date().getHours();
+
+            let greeting = "Good morning,";
+
+            if (hour >= 12 && hour < 17) {
+                greeting = "Good afternoon,";
+            }
+
+            if (hour >= 17) {
+                greeting = "Good evening,";
+            }
+
+            if ($("dashboardGreeting")) {
+                $("dashboardGreeting").textContent =
+                    greeting;
+            }
+
+
+            // ================= MARKETER INFORMATION =================
+
+            const marketerSnapshot =
+                await get(
+                    ref(
+                        database,
+                        `bodaProgram/marketers/${user.uid}`
+                    )
+                );
+
+            const marketer =
+                marketerSnapshot.exists()
+                    ? marketerSnapshot.val()
+                    : {};
+
+            const fullName =
+                marketer.fullName ||
+                user.displayName ||
+                user.email?.split("@")[0] ||
+                "Marketeer";
+
+            const firstName =
+                fullName
+                    .trim()
+                    .split(/\s+/)[0];
+
+            dashboardName.textContent =
+                firstName;
+
+
+            // ================= PROFILE PHOTO =================
+
+            const profilePhoto =
+                $("dashboardProfilePhoto");
+
+            const profileInitials =
+                $("dashboardProfileInitials");
+
+            const avatar =
+                $("dashboardProfileAvatar");
+
+            let googlePhoto = user.photoURL || "";
+
+            // Check Google provider information too
+            if (!googlePhoto && user.providerData) {
+
+                const googleProvider =
+                    user.providerData.find(
+                        provider =>
+                            provider.providerId === "google.com"
+                    );
+
+                if (googleProvider?.photoURL) {
+                    googlePhoto =
+                        googleProvider.photoURL;
+                }
+            }
+
+
+            // Google profile photo available
+            if (googlePhoto && profilePhoto) {
+
+                profilePhoto.src =
+                    googlePhoto;
+
+                profilePhoto.onload = () => {
+
+                    profilePhoto
+                        .classList
+                        .remove("hidden");
+
+                    profileInitials
+                        ?.classList
+                        .add("hidden");
+                };
+
+                // Fall back to initials if Google image fails
+                profilePhoto.onerror = () => {
+
+                    profilePhoto
+                        .classList
+                        .add("hidden");
+
+                    profileInitials
+                        ?.classList
+                        .remove("hidden");
+                };
+
+            } else {
+
+                // ================= INITIALS FALLBACK =================
+
+                const names =
+                    fullName
+                        .trim()
+                        .split(/\s+/)
+                        .filter(Boolean);
+
+                let initials =
+                    names[0]?.charAt(0) || "M";
+
+                if (names.length > 1) {
+
+                    initials +=
+                        names[
+                            names.length - 1
+                        ]?.charAt(0) || "";
+                }
+
+                if (profileInitials) {
+
+                    profileInitials.textContent =
+                        initials.toUpperCase();
+
+                    profileInitials
+                        .classList
+                        .remove("hidden");
+                }
+            }
+
+
+            // ================= LOAD DASHBOARD DATA =================
+
+            loadDashboardRegistrations(
+                user.uid
+            );
+
+            loadDashboardEarnings(
+                user.uid
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Dashboard initialization error:",
+                error
+            );
+
+            showToast(
+                "Unable to load dashboard.",
+                "error"
+            );
+        }
+    });
+}
+
+
+// ================= DASHBOARD REGISTRATIONS =================
+
+async function loadDashboardRegistrations(marketerId) {
+    const container = $("recentRegistrations");
+
+    if (!container) {
+        console.error("recentRegistrations container not found.");
+        return;
+    }
+
+    try {
+        container.innerHTML = `
+            <div class="dashboard-recent-loading">
+                <div class="dashboard-small-spinner"></div>
+                <div>
+                    <strong>Loading registrations...</strong>
+                    <span>Please wait</span>
+                </div>
+            </div>
+        `;
+
+        console.log("Loading dashboard for marketer:", marketerId);
+
+        // Get BOTH registration types
+        const [ridersSnapshot, pregnantSnapshot] =
+            await Promise.all([
+                get(ref(database, "bodaProgram/riders")),
+                get(ref(database, "bodaProgram/pregnantWomen"))
+            ]);
+
+        const registrations = [];
+
+        // ================= RIDERS =================
+
+        if (ridersSnapshot.exists()) {
+            ridersSnapshot.forEach(childSnapshot => {
+                const rider = childSnapshot.val() || {};
+
+                console.log(
+                    "Dashboard rider:",
+                    childSnapshot.key,
+                    rider
+                );
+
+                if (
+                    !rider.marketerId ||
+                    rider.marketerId === marketerId
+                ) {
+                    registrations.push({
+                        ...rider,
+                        id: childSnapshot.key,
+                        registrationType: "rider"
+                    });
+                }
+            });
+        }
+
+        // ================= PREGNANT WOMEN =================
+
+        if (pregnantSnapshot.exists()) {
+            pregnantSnapshot.forEach(childSnapshot => {
+                const woman = childSnapshot.val() || {};
+
+                console.log(
+                    "Dashboard pregnant woman:",
+                    childSnapshot.key,
+                    woman
+                );
+
+                if (
+                    !woman.marketerId ||
+                    woman.marketerId === marketerId
+                ) {
+                    registrations.push({
+                        ...woman,
+                        id: childSnapshot.key,
+                        registrationType: "pregnant"
+                    });
+                }
+            });
+        }
+
+        // Newest first
+        registrations.sort((a, b) =>
+            Number(b.registeredAt || 0) -
+            Number(a.registeredAt || 0)
+        );
+
+        console.log(
+            "FINAL DASHBOARD REGISTRATIONS:",
+            registrations
+        );
+
+        // ================= TOTAL =================
+
+        if ($("totalRegistrations")) {
+            $("totalRegistrations").textContent =
+                registrations.length;
+        }
+
+        // ================= THIS MONTH =================
+
+        const now = new Date();
+
+        const thisMonth = registrations.filter(item => {
+            if (!item.registeredAt) return false;
+
+            const date = new Date(
+                Number(item.registeredAt)
+            );
+
+            return (
+                date.getMonth() === now.getMonth() &&
+                date.getFullYear() === now.getFullYear()
+            );
+        }).length;
+
+        if ($("monthlyRegistrationChange")) {
+            $("monthlyRegistrationChange").textContent =
+                `${thisMonth} this month`;
+        }
+
+        // ================= RECENT 5 =================
+
+        displayDashboardRecentRegistrations(
+            registrations.slice(0, 5)
+        );
+
+    } catch (error) {
+        console.error(
+            "DASHBOARD REGISTRATION ERROR:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⚠️</div>
+                <h3>Unable to load registrations</h3>
+                <p>Please refresh and try again.</p>
+            </div>
+        `;
+
+        showToast(
+            "Failed to load recent registrations.",
+            "error"
+        );
+    }
+}
+
+
+// ================= DISPLAY RECENT REGISTRATIONS =================
+
+function displayDashboardRecentRegistrations(
+    registrations
+) {
+
+    const container =
+        $("recentRegistrations");
+
+    if (!container) {
+        return;
+    }
+
+
+    // ================= EMPTY =================
+
+    if (!registrations.length) {
+
+        container.innerHTML = `
+            <div class="empty-state dashboard-empty">
+                <div class="empty-icon">👥</div>
+                <h3>No registrations yet</h3>
+                <p>
+                    Your latest registrations
+                    will appear here.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    // ================= CARDS =================
+
+    container.innerHTML =
+        registrations
+            .map(client => {
+
+                const isRider =
+                    client.registrationType ===
+                    "rider";
+
+
+                const typeText =
+                    isRider
+                        ? "Boda Boda Rider"
+                        : "Pregnant Woman";
+
+
+                let statusText =
+                    "Pending";
+
+                let statusClass =
+                    "pending";
+
+
+                // ================= RIDER STATUS =================
+
+                if (isRider) {
+
+                    if (
+                        client.otpVerified === true
+                    ) {
+
+                        statusText =
+                            "Verified";
+
+                        statusClass =
+                            "verified";
+                    }
+
+                }
+
+
+                // ================= PREGNANT STATUS =================
+
+                else {
+
+                    if (
+                        client.approved === true
+                    ) {
+
+                        statusText =
+                            "Approved";
+
+                        statusClass =
+                            "verified";
+
+                    } else if (
+                        client.paymentConfirmed ===
+                        true
+                    ) {
+
+                        statusText =
+                            "Payment Confirmed";
+
+                    } else if (
+                        client.arrived === true
+                    ) {
+
+                        statusText =
+                            "Arrived";
+
+                    } else {
+
+                        statusText =
+                            "Awaiting Visit";
+                    }
+                }
+
+
+                const initials =
+                    getClientInitials(
+                        client.fullName || ""
+                    );
+
+
+                const stage =
+                    isRider &&
+                    client.stageName
+
+                        ? `
+                            <span class="dashboard-recent-stage">
+                                📍
+                                ${escapeHTML(
+                                    client.stageName
+                                )}
+                            </span>
+                        `
+
+                        : "";
+
+
+                return `
+                    <div
+                        class="dashboard-recent-card"
+                        data-id="${escapeHTML(
+                            client.id || ""
+                        )}"
+                        data-type="${escapeHTML(
+                            client.registrationType
+                        )}"
+                    >
+
+                        <div class="
+                            dashboard-recent-avatar
+                            ${
+                                isRider
+                                    ? "rider"
+                                    : "pregnant"
+                            }
+                        ">
+                            ${escapeHTML(
+                                initials
+                            )}
+                        </div>
+
+
+                        <div class="
+                            dashboard-recent-info
+                        ">
+
+                            <strong>
+                                ${escapeHTML(
+                                    client.fullName ||
+                                    "Unknown"
+                                )}
+                            </strong>
+
+
+                            <span class="
+                                dashboard-recent-type
+                            ">
+                                ${typeText}
+                            </span>
+
+
+                            <span class="
+                                dashboard-recent-phone
+                            ">
+                                ${escapeHTML(
+                                    formatPhone(
+                                        client.phone ||
+                                        ""
+                                    )
+                                )}
+                            </span>
+
+
+                            ${stage}
+
+
+                            <small>
+                                ${formatDate(
+                                    client.registeredAt
+                                )}
+                            </small>
+
+                        </div>
+
+
+                        <div class="
+                            dashboard-recent-right
+                        ">
+
+                            <span class="
+                                dashboard-status
+                                ${statusClass}
+                            ">
+                                ${statusText}
+                            </span>
+
+                            <span class="
+                                dashboard-recent-arrow
+                            ">
+                                ›
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+            })
+            .join("");
+
+
+    // ================= CLICK REGISTRATION =================
+
+    container
+        .querySelectorAll(
+            ".dashboard-recent-card"
+        )
+        .forEach(card => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    sessionStorage.setItem(
+                        "selectedRegistrationId",
+                        card.dataset.id
+                    );
+
+                    sessionStorage.setItem(
+                        "selectedRegistrationType",
+                        card.dataset.type
+                    );
+
+                    window.location.href =
+                        "client-details.html";
+                }
+            );
+        });
+}
+
+
+// ================= DASHBOARD EARNINGS =================
+
+function loadDashboardEarnings(marketerId) {
+
+    const commissionsRef =
+        ref(
+            database,
+            "bodaProgram/commissions"
+        );
+
+
+    onValue(
+
+        commissionsRef,
+
+        snapshot => {
+
+            let total = 0;
+
+
+            snapshot.forEach(
+                childSnapshot => {
+
+                    const commission =
+                        childSnapshot.val() || {};
+
+
+                    if (
+                        commission.marketerId ===
+                        marketerId
+                    ) {
+
+                        total +=
+                            Number(
+                                commission.amount || 0
+                            );
+                    }
+                }
+            );
+
+
+            if ($("totalEarnings")) {
+
+                $("totalEarnings")
+                    .textContent =
+                    formatMoney(total);
+            }
+        },
+
+        error => {
+
+            console.error(
+                "Dashboard earnings error:",
+                error
+            );
+        }
+    );
+}
+
+
+
+
+
+
+
+
+
+
+// ================= PROFILE =================
+
+const profileName = $("profileName");
+
+if (profileName) {
+    onAuthStateChanged(auth, async user => {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        try {
+            const snapshot = await get(ref(database, `bodaProgram/marketers/${user.uid}`));
+
+            if (!snapshot.exists()) {
+                showToast("Profile information not found.", "error");
+                return;
+            }
+
+            const marketer = snapshot.val();
+            profileName.textContent = marketer.fullName || "Marketer";
+
+            const names = (marketer.fullName || "M").trim().split(/\s+/);
+            let initials = names[0]?.charAt(0) || "M";
+            if (names.length > 1) initials += names[names.length - 1].charAt(0);
+
+            if ($("profileInitials")) $("profileInitials").textContent = initials.toUpperCase();
+
+        } catch (error) {
+            console.error("Profile error:", error);
+            showToast("Failed to load profile.", "error");
+        }
+    });
+}
+
+$("logoutBtn")?.addEventListener("click", async () => {
+    try {
+        showLoader("Signing out...");
+        await signOut(auth);
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error(error);
+        hideLoader();
+        showToast("Failed to sign out.", "error");
+    }
+});
+
+$("myInformationBtn")?.addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const snapshot = await get(ref(database, `bodaProgram/marketers/${user.uid}`));
+        if (!snapshot.exists()) return;
+
+        const marketer = snapshot.val();
+
+        alert(
+`My Information
+
+Name: ${marketer.fullName || "-"}
+Phone: ${formatPhone(marketer.phone)}
+Email: ${marketer.email || user.email || "-"}
+Account: ${marketer.status || "active"}`
+        );
+
+    } catch (error) {
+        console.error(error);
+        showToast("Unable to load your information.", "error");
+    }
+});
+
+$("changePasswordBtn")?.addEventListener("click", async () => {
+    const user = auth.currentUser;
+
+    if (!user || !user.email) {
+        showToast("Unable to find your email.", "error");
+        return;
+    }
+
+    try {
+        await sendPasswordResetEmail(auth, user.email);
+        showToast("Password reset email sent.", "success");
+    } catch (error) {
+        console.error(error);
+        showToast("Failed to send password reset email.", "error");
+    }
+});
+
+$("notificationsBtn")?.addEventListener("click", () => {
+    showToast("Notifications will be available soon.", "info");
+});
+
+$("aboutBtn")?.addEventListener("click", () => {
+    alert(
+`SANYU HOSPITAL
+
+Boda Boda Community Program
+
+Connecting registered Boda Boda riders with approved hospital services and benefits.
+
+Version 1.0`
+    );
+});
+// ================= REGISTRATION TYPE =================
+
+const registrationTypeButtons =
+    document.querySelectorAll(".registration-type");
+
+const registrationType =
+    $("registrationType");
+
+const riderFields =
+    $("riderFields");
+
+const riderExtraFields =
+    $("riderExtraFields");
+
+registrationTypeButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        const type = button.dataset.type;
+
+        registrationTypeButtons.forEach(btn => {
+            btn.classList.remove("active");
+        });
+
+        button.classList.add("active");
+
+        if (registrationType) {
+            registrationType.value = type;
+        }
+
+        if (type === "rider") {
+            riderFields?.classList.remove("hidden");
+            riderExtraFields?.classList.remove("hidden");
+
+            if ($("stageSelect")) {
+                $("stageSelect").required = true;
+            }
+        } else {
+            riderFields?.classList.add("hidden");
+            riderExtraFields?.classList.add("hidden");
+
+            if ($("stageSelect")) {
+                $("stageSelect").required = false;
+            }
+        }
+    });
+});
+
+// ================= FIREBASE PHONE OTP =================
+
+const otpForm = $("otpForm");
+
+let confirmationResult = null;
+let recaptchaVerifier = null;
+let recaptchaWidgetId = null;
+
+if (otpForm) {
+    const otpInputs = document.querySelectorAll(".otp-digit");
+
+    const registrationId =
+        sessionStorage.getItem("pendingRegistrationId");
+
+    const registrationType =
+        sessionStorage.getItem("pendingRegistrationType");
+
+    const registrationPhone =
+        sessionStorage.getItem("pendingRegistrationPhone");
+
+    const registrationName =
+        sessionStorage.getItem("pendingRegistrationName");
+
+    if (!registrationId ||
+        !registrationType ||
+        !registrationPhone) {
+
+        showToast(
+            "No pending registration found.",
+            "error"
+        );
+
+        setTimeout(() => {
+            window.location.href = "register.html";
+        }, 1200);
+
+    } else {
+
+        $("otpPhoneNumber").textContent =
+            formatPhone(registrationPhone);
+
+        $("otpRegistrationName").textContent =
+            registrationName || "";
+
+        $("otpRegistrationType").textContent =
+            registrationType === "rider"
+                ? "Boda Boda Rider"
+                : "Pregnant Woman";
+
+        setupPhoneVerification();
+    }
+
+
+    // ================= RECAPTCHA =================
+async function setupPhoneVerification() {
+    const loading = $("recaptchaLoading");
+    const container = $("recaptcha-container");
+
+    try {
+        loading?.classList.remove("hidden");
+
+        if (container) {
+            container.style.visibility = "hidden";
+        }
+
+        recaptchaVerifier = new RecaptchaVerifier(
+            "recaptcha-container",
+            {
+                size: "normal",
+
+                callback: () => {
+                    console.log("reCAPTCHA completed");
+                },
+
+                "expired-callback": () => {
+                    confirmationResult = null;
+
+                    showToast(
+                        "Security check expired. Please complete it again.",
+                        "error"
+                    );
+                }
+            },
+            phoneAuth
+        );
+
+        recaptchaWidgetId =
+            await recaptchaVerifier.render();
+
+        if (container) {
+            container.style.visibility = "visible";
+        }
+
+        loading?.classList.add("hidden");
+const sendButton = $("sendOtpBtn");
+
+if (sendButton) {
+    sendButton.disabled = false;
+}
+        console.log("Firebase reCAPTCHA ready");
+
+    } catch (error) {
+        console.error("reCAPTCHA error:", error);
+
+        loading?.classList.add("hidden");
+
+        if (container) {
+            container.style.visibility = "visible";
+        }
+
+        showToast(
+            "Unable to load the security check. Please refresh and try again.",
+            "error"
+        );
+    }
+}
+
+    // ================= SEND OTP =================
+
+    async function sendFirebaseOTP() {
+        if (!recaptchaVerifier) {
+            showToast(
+                "Phone verification is still loading.",
+                "error"
+            );
+
+            return;
+        }
+
+        const phone =
+            "+" + normalizePhone(registrationPhone);
+
+        try {
+            showLoader(
+                "Sending verification code..."
+            );
+
+            confirmationResult =
+                await signInWithPhoneNumber(
+                    phoneAuth,
+                    phone,
+                    recaptchaVerifier
+                );
+
+            hideLoader();
+
+            showToast(
+                "Verification code sent.",
+                "success"
+            );
+
+            if ($("otpDescription")) {
+                $("otpDescription").textContent =
+                    "Enter the 6-digit verification code sent to";
+            }
+
+            otpInputs[0]?.focus();
+
+        } catch (error) {
+            console.error(
+                "Send OTP error:",
+                error
+            );
+
+            hideLoader();
+
+            handleOTPError(error);
+
+            resetRecaptcha();
+        }
+    }
+
+
+    // ================= RESET RECAPTCHA =================
+
+    function resetRecaptcha() {
+        if (
+            window.grecaptcha &&
+            recaptchaWidgetId !== null
+        ) {
+            window.grecaptcha.reset(
+                recaptchaWidgetId
+            );
+        }
+
+        confirmationResult = null;
+    }
+
+
+    // ================= OTP INPUTS =================
+
+    otpInputs.forEach((input, index) => {
+
+        input.addEventListener("input", () => {
+
+            input.value = input.value
+                .replace(/\D/g, "")
+                .slice(0, 1);
+
+            if (
+                input.value &&
+                index < otpInputs.length - 1
+            ) {
+                otpInputs[index + 1].focus();
+            }
+        });
+
+
+        input.addEventListener("keydown", e => {
+
+            if (
+                e.key === "Backspace" &&
+                !input.value &&
+                index > 0
+            ) {
+                otpInputs[index - 1].focus();
+            }
+        });
+
+
+        input.addEventListener("paste", e => {
+
+            e.preventDefault();
+
+            const pasted =
+                e.clipboardData
+                    .getData("text")
+                    .replace(/\D/g, "")
+                    .slice(0, 6);
+
+            pasted
+                .split("")
+                .forEach((number, i) => {
+
+                    if (otpInputs[i]) {
+                        otpInputs[i].value =
+                            number;
+                    }
+                });
+
+            if (pasted.length === 6) {
+                otpInputs[5]?.focus();
+            }
+        });
+    });
+
+
+    // ================= VERIFY OTP =================
+
+    otpForm.addEventListener(
+        "submit",
+        async e => {
+
+            e.preventDefault();
+
+            const otp =
+                Array.from(otpInputs)
+                    .map(input => input.value)
+                    .join("");
+
+            if (otp.length !== 6) {
+
+                showToast(
+                    "Enter the complete 6-digit code.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (!confirmationResult) {
+
+                showToast(
+                    "Send the verification code first.",
+                    "error"
+                );
+
+                return;
+            }
+
+            try {
+
+                showLoader(
+                    "Verifying phone number..."
+                );
+
+                const result =
+                    await confirmationResult.confirm(
+                        otp
+                    );
+
+                const verifiedPhone =
+                    result.user.phoneNumber || "";
+
+                console.log(
+                    "Verified Firebase phone:",
+                    verifiedPhone
+                );
+
+                await completeClientVerification(
+                    registrationId,
+                    registrationType,
+                    result.user.uid,
+                    verifiedPhone
+                );
+
+                // Sign client out of SECONDARY auth only.
+                await signOut(phoneAuth);
+
+                hideLoader();
+
+                showToast(
+                    "Phone number verified successfully.",
+                    "success"
+                );
+
+                clearPendingRegistration();
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "registration-success.html";
+
+                }, 800);
+
+            } catch (error) {
+
+                console.error(
+                    "OTP verification error:",
+                    error
+                );
+
+                hideLoader();
+
+                handleOTPError(error);
+            }
+        }
+    );
+
+
+    // ================= RESEND =================
+
+    $("resendOtpBtn")?.addEventListener(
+        "click",
+        async () => {
+
+            resetRecaptcha();
+
+            showToast(
+                "Complete reCAPTCHA again to resend the code.",
+                "info"
+            );
+        }
+    );
+
+$("sendOtpBtn")?.addEventListener(
+    "click",
+    async () => {
+
+        await sendFirebaseOTP();
+
+        if (confirmationResult) {
+            $("sendOtpBtn").classList.add(
+                "hidden"
+            );
+        }
+    }
+);
+    // ================= OTP ERRORS =================
+
+    function handleOTPError(error) {
+
+        let message =
+            "Phone verification failed.";
+
+        if (
+            error.code ===
+            "auth/invalid-verification-code"
+        ) {
+            message =
+                "The verification code is incorrect.";
+        }
+
+        else if (
+            error.code ===
+            "auth/code-expired"
+        ) {
+            message =
+                "The verification code has expired.";
+        }
+
+        else if (
+            error.code ===
+            "auth/too-many-requests"
+        ) {
+            message =
+                "Too many attempts. Please try again later.";
+        }
+
+        else if (
+            error.code ===
+            "auth/invalid-phone-number"
+        ) {
+            message =
+                "The phone number is invalid.";
+        }
+
+        else if (
+            error.code ===
+            "auth/quota-exceeded"
+        ) {
+            message =
+                "Firebase SMS quota has been reached.";
+        }
+
+        else if (
+            error.code ===
+            "auth/captcha-check-failed"
+        ) {
+            message =
+                "reCAPTCHA verification failed.";
+        }
+
+        showToast(
+            message,
+            "error"
+        );
+    }
+}
+
+
+
+
+// ================= COMPLETE CLIENT VERIFICATION =================
+
+async function completeClientVerification(
+    registrationId,
+    registrationType,
+    phoneAuthUid,
+    verifiedPhone
+) {
+
+    const user = auth.currentUser;
+
+    if (!user) {
+        throw new Error(
+            "Marketer authentication was lost."
+        );
+    }
+
+    const databasePath =
+        registrationType === "rider"
+            ? `bodaProgram/riders/${registrationId}`
+            : `bodaProgram/pregnantWomen/${registrationId}`;
+
+    const registrationRef =
+        ref(database, databasePath);
+
+    const snapshot =
+        await get(registrationRef);
+
+    if (!snapshot.exists()) {
+        throw new Error(
+            "Registration does not exist."
+        );
+    }
+
+    const registration =
+        snapshot.val();
+
+    if (
+        registration.marketerId &&
+        registration.marketerId !== user.uid
+    ) {
+        throw new Error(
+            "Registration belongs to another marketer."
+        );
+    }
+
+    const expectedPhone =
+        normalizePhone(
+            registration.phone
+        );
+
+    const actualPhone =
+        normalizePhone(
+            verifiedPhone
+        );
+
+    if (
+        !expectedPhone ||
+        expectedPhone !== actualPhone
+    ) {
+        throw new Error(
+            "Verified phone number does not match registration."
+        );
+    }
+
+
+    // Already verified.
+    if (registration.otpVerified === true) {
+        return;
+    }
+
+
+    const updates = {};
+
+    updates[
+        `${databasePath}/otpVerified`
+    ] = true;
+
+    updates[
+        `${databasePath}/verifiedAt`
+    ] = Date.now();
+
+    updates[
+        `${databasePath}/status`
+    ] = "verified";
+
+    updates[
+        `${databasePath}/phoneAuthUid`
+    ] = phoneAuthUid;
+
+
+    // Commission currently applies to riders.
+    if (registrationType === "rider") {
+
+        const commissionId =
+            `rider_${registrationId}`;
+
+        updates[
+            `bodaProgram/commissions/${commissionId}`
+        ] = {
+            commissionId,
+            marketerId: user.uid,
+            riderId: registrationId,
+            amount: 1000,
+            status: "pending",
+            createdAt: Date.now(),
+            paidAt: null
+        };
+    }
+
+
+    await update(
+        ref(database),
+        updates
+    );
+}
+
+
+
+
+
+
+
+
+// ================= MY REGISTRATIONS =================
+
+const clientsList = $("clientsList");
+const clientSearch = $("clientSearch");
+const clientTabs = document.querySelectorAll(".client-tab");
+
+let allClients = [];
+let currentClientFilter = "all";
+
+if (clientsList) {
+    onAuthStateChanged(auth, user => {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        console.log("Logged in marketer:", user.uid);
+        loadMyRegistrations(user.uid);
+    });
+}
+
+function loadMyRegistrations(marketerId) {
+    const ridersRef = ref(database, "bodaProgram/riders");
+    const pregnantRef = ref(database, "bodaProgram/pregnantWomen");
+
+    let riders = [];
+    let pregnantWomen = [];
+    let ridersLoaded = false;
+    let pregnantLoaded = false;
+
+    function updateCombinedList() {
+        if (!ridersLoaded || !pregnantLoaded) return;
+
+        allClients = [...riders, ...pregnantWomen];
+
+        allClients.sort((a, b) =>
+            Number(b.registeredAt || 0) - Number(a.registeredAt || 0)
+        );
+
+        console.log("My combined registrations:", allClients);
+
+        updateRegistrationSummary();
+        filterRegistrations();
+    }
+
+    onValue(ridersRef, snapshot => {
+        riders = [];
+
+        console.log("Riders snapshot exists:", snapshot.exists());
+        console.log("Riders Firebase data:", snapshot.val());
+
+        snapshot.forEach(childSnapshot => {
+            const rider = childSnapshot.val() || {};
+
+            console.log("Rider:", childSnapshot.key, rider);
+
+            /*
+             * New records should contain marketerId.
+             * Older records without marketerId are temporarily included
+             * so they do not disappear while developing.
+             */
+            if (!rider.marketerId || rider.marketerId === marketerId) {
+                riders.push({
+                    ...rider,
+                    id: childSnapshot.key,
+                    registrationType: "rider"
+                });
+            }
+        });
+
+        ridersLoaded = true;
+        updateCombinedList();
+
+    }, error => {
+        console.error("Riders Firebase error:", error);
+        ridersLoaded = true;
+        updateCombinedList();
+        showToast("Failed to load rider registrations.", "error");
+    });
+
+    onValue(pregnantRef, snapshot => {
+        pregnantWomen = [];
+
+        console.log("Pregnant snapshot exists:", snapshot.exists());
+        console.log("Pregnant Firebase data:", snapshot.val());
+
+        snapshot.forEach(childSnapshot => {
+            const woman = childSnapshot.val() || {};
+
+            console.log("Pregnant registration:", childSnapshot.key, woman);
+
+            if (!woman.marketerId || woman.marketerId === marketerId) {
+                pregnantWomen.push({
+                    ...woman,
+                    id: childSnapshot.key,
+                    registrationType: "pregnant"
+                });
+            }
+        });
+
+        pregnantLoaded = true;
+        updateCombinedList();
+
+    }, error => {
+        console.error("Pregnant Firebase error:", error);
+        pregnantLoaded = true;
+        updateCombinedList();
+        showToast("Failed to load pregnant women.", "error");
+    });
+}
+
+
+// ================= SUMMARY =================
+
+function updateRegistrationSummary() {
+    const total = allClients.length;
+
+    const verified = allClients.filter(client =>
+        client.otpVerified === true
+    ).length;
+
+    if ($("totalClients")) {
+        $("totalClients").textContent = total;
+    }
+
+    if ($("verifiedClients")) {
+        $("verifiedClients").textContent = verified;
+    }
+}
+
+
+// ================= FILTER TABS =================
+
+clientTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+        clientTabs.forEach(btn =>
+            btn.classList.remove("active")
+        );
+
+        tab.classList.add("active");
+
+        currentClientFilter = tab.dataset.filter || "all";
+
+        filterRegistrations();
+    });
+});
+
+
+// ================= SEARCH =================
+
+clientSearch?.addEventListener("input", filterRegistrations);
+
+
+// ================= FILTER =================
+
+function filterRegistrations() {
+    let clients = [...allClients];
+
+    const search = (clientSearch?.value || "")
+        .trim()
+        .toLowerCase();
+
+    if (currentClientFilter === "rider") {
+        clients = clients.filter(client =>
+            client.registrationType === "rider"
+        );
+    }
+
+    if (currentClientFilter === "pregnant") {
+        clients = clients.filter(client =>
+            client.registrationType === "pregnant"
+        );
+    }
+
+    if (currentClientFilter === "pending") {
+        clients = clients.filter(client =>
+            client.otpVerified !== true
+        );
+    }
+
+    if (search) {
+        const cleanSearch = search.replace(/\D/g, "");
+
+        clients = clients.filter(client => {
+            const name = String(client.fullName || "").toLowerCase();
+            const phone = String(client.phone || "");
+            const formattedPhone = formatPhone(phone).toLowerCase();
+
+            return name.includes(search) ||
+                phone.includes(search) ||
+                formattedPhone.includes(search) ||
+                (cleanSearch && phone.includes(cleanSearch));
+        });
+    }
+
+    displayRegistrations(clients);
+}
+
+
+// ================= DISPLAY =================
+
+function displayRegistrations(clients) {
+    if (!clientsList) return;
+
+    if (!clients.length) {
+        clientsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <h3>No registrations found</h3>
+                <p>New registrations will appear here.</p>
+            </div>
+        `;
+        return;
+    }
+
+    clientsList.innerHTML = clients.map(client => {
+        const isRider = client.registrationType === "rider";
+        const verified = client.otpVerified === true;
+
+        const typeText = isRider
+            ? "Boda Boda Rider"
+            : "Pregnant Woman";
+
+        const statusText = verified
+            ? "Verified"
+            : "Pending";
+
+        const statusClass = verified
+            ? "verified"
+            : "pending";
+
+        const initials = getClientInitials(client.fullName);
+
+        const stageText =
+            isRider && client.stageName
+                ? `<span class="client-stage">${escapeHTML(client.stageName)}</span>`
+                : "";
+
+        return `
+            <div
+                class="client-card ${isRider ? "rider" : "pregnant"}"
+                data-id="${escapeHTML(client.id || "")}"
+                data-type="${client.registrationType}"
+            >
+
+                <div class="client-avatar">
+                    ${escapeHTML(initials)}
+                </div>
+
+                <div class="client-info">
+
+                    <h3>
+                        ${escapeHTML(client.fullName || "Unknown")}
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(formatPhone(client.phone || ""))}
+                    </p>
+
+                    ${stageText}
+
+                    <div class="client-meta">
+
+                        <span class="client-type">
+                            ${typeText}
+                        </span>
+
+                        <span class="client-status ${statusClass}">
+                            ${statusText}
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <span class="client-arrow">›</span>
+
+            </div>
+        `;
+    }).join("");
+
+    attachClientCardEvents();
+}
+
+
+// ================= INITIALS =================
+
+function getClientInitials(name = "") {
+    const names = String(name)
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    if (!names.length) return "?";
+
+    let initials = names[0][0] || "";
+
+    if (names.length > 1) {
+        initials += names[names.length - 1][0] || "";
+    }
+
+    return initials.toUpperCase();
+}
+
+
+// ================= OPEN DETAILS =================
+
+function attachClientCardEvents() {
+    document.querySelectorAll(".client-card").forEach(card => {
+        card.addEventListener("click", () => {
+            sessionStorage.setItem(
+                "selectedRegistrationId",
+                card.dataset.id
+            );
+
+            sessionStorage.setItem(
+                "selectedRegistrationType",
+                card.dataset.type
+            );
+
+            window.location.href = "client-details.html";
+        });
+    });
+}
+
+
+
+
+
+// ================= CLIENT DETAILS =================
+
+const detailClientName = $("detailClientName");
+
+if (detailClientName) {
+    onAuthStateChanged(auth, async user => {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        const registrationId = sessionStorage.getItem("selectedRegistrationId");
+        const registrationType = sessionStorage.getItem("selectedRegistrationType");
+
+        if (!registrationId || !registrationType) {
+            showToast("Registration not found.", "error");
+
+            setTimeout(() => {
+                window.location.href = "riders.html";
+            }, 1000);
+
+            return;
+        }
+
+        try {
+            showLoader("Loading registration...");
+
+            const databasePath = registrationType === "rider"
+                ? `bodaProgram/riders/${registrationId}`
+                : `bodaProgram/pregnantWomen/${registrationId}`;
+
+            const snapshot = await get(ref(database, databasePath));
+
+            if (!snapshot.exists()) {
+                hideLoader();
+                showToast("Registration not found.", "error");
+                return;
+            }
+
+            const client = snapshot.val();
+
+            // Make sure a marketer cannot open another marketer's record.
+            if (client.marketerId && client.marketerId !== user.uid) {
+                hideLoader();
+                showToast("You cannot access this registration.", "error");
+
+                setTimeout(() => {
+                    window.location.href = "riders.html";
+                }, 1000);
+
+                return;
+            }
+
+            displayClientDetails(client, registrationType);
+
+            hideLoader();
+
+        } catch (error) {
+            console.error("Client details error:", error);
+            hideLoader();
+            showToast("Failed to load registration.", "error");
+        }
+    });
+}
+
+function displayClientDetails(client, type) {
+    const isRider = type === "rider";
+
+    const verified = isRider
+        ? client.otpVerified === true
+        : client.approved === true;
+
+    $("detailClientName").textContent =
+        client.fullName || "Unknown";
+
+    $("detailClientPhone").textContent =
+        formatPhone(client.phone || "");
+
+    $("detailMarketerName").textContent =
+        client.marketerName || "Marketer";
+
+    $("detailRegistrationDate").textContent =
+        formatDate(client.registeredAt);
+
+    if ($("detailClientInitials")) {
+        $("detailClientInitials").textContent =
+            getClientInitials(
+                client.fullName || ""
+            );
+    }
+
+    if ($("detailClientType")) {
+        $("detailClientType").textContent =
+            isRider
+                ? "Boda Boda Rider"
+                : "Pregnant Woman";
+
+        $("detailClientType").classList.toggle(
+            "pregnant",
+            !isRider
+        );
+    }
+
+    // Rider-specific information
+    if (isRider) {
+        $("detailRiderSection")
+            ?.classList.remove("hidden");
+
+        if ($("detailClientNationalId")) {
+            $("detailClientNationalId").textContent =
+                client.nationalId ||
+                "Not provided";
+        }
+
+        if ($("detailClientStage")) {
+            $("detailClientStage").textContent =
+                client.stageName ||
+                "Not provided";
+        }
+    } else {
+        $("detailRiderSection")
+            ?.classList.add("hidden");
+    }
+
+    const statusElement =
+        $("detailClientStatus");
+
+    if (statusElement) {
+        let statusText = "Pending";
+        let statusClass = "pending";
+
+        if (isRider) {
+            if (client.otpVerified === true) {
+                statusText = "Verified";
+                statusClass = "verified";
+            }
+        } else {
+            if (client.approved === true) {
+                statusText = "Approved";
+                statusClass = "verified";
+            } else if (client.paymentConfirmed === true) {
+                statusText = "Payment Confirmed";
+            } else if (client.arrived === true) {
+                statusText = "Arrived";
+            } else {
+                statusText = "Awaiting Hospital Visit";
+            }
+        }
+
+        statusElement.textContent =
+            statusText;
+
+        statusElement.classList.remove(
+            "verified",
+            "pending"
+        );
+
+        statusElement.classList.add(
+            statusClass
+        );
+    }
+
+    if ($("detailVerificationStatus")) {
+        if (isRider) {
+            $("detailVerificationStatus")
+                .textContent =
+                client.otpVerified === true
+                    ? "Phone Verified"
+                    : "Pending Phone Verification";
+        } else {
+            $("detailVerificationStatus")
+                .textContent =
+                client.approved === true
+                    ? "Hospital Approved"
+                    : "Awaiting Hospital Approval";
+        }
+    }
+
+    // OTP button ONLY for riders
+    if ($("verificationAction")) {
+        if (
+            isRider &&
+            client.otpVerified !== true
+        ) {
+            $("verificationAction")
+                .classList.remove("hidden");
+        } else {
+            $("verificationAction")
+                .classList.add("hidden");
+        }
+    }
+}
+// ================= VERIFY FROM DETAILS =================
+
+$("verifyClientPhoneBtn")?.addEventListener(
+    "click",
+    async () => {
+        const registrationId =
+            sessionStorage.getItem(
+                "selectedRegistrationId"
+            );
+
+        const registrationType =
+            sessionStorage.getItem(
+                "selectedRegistrationType"
+            );
+
+        if (!registrationId || !registrationType) {
+            showToast(
+                "Registration not found.",
+                "error"
+            );
+            return;
+        }
+
+        // Only riders use phone OTP
+        if (registrationType !== "rider") {
+            showToast(
+                "Phone verification is only required for Boda Boda riders.",
+                "info"
+            );
+            return;
+        }
+
+        try {
+            showLoader(
+                "Preparing phone verification..."
+            );
+
+            const databasePath =
+                `bodaProgram/riders/${registrationId}`;
+
+            const snapshot = await get(
+                ref(database, databasePath)
+            );
+
+            if (!snapshot.exists()) {
+                hideLoader();
+
+                showToast(
+                    "Rider registration not found.",
+                    "error"
+                );
+
+                return;
+            }
+
+            const client = snapshot.val();
+
+            if (client.otpVerified === true) {
+                hideLoader();
+
+                showToast(
+                    "This rider's phone is already verified.",
+                    "info"
+                );
+
+                return;
+            }
+
+            sessionStorage.setItem(
+                "pendingRegistrationId",
+                registrationId
+            );
+
+            sessionStorage.setItem(
+                "pendingRegistrationType",
+                "rider"
+            );
+
+            sessionStorage.setItem(
+                "pendingRegistrationPhone",
+                client.phone || ""
+            );
+
+            sessionStorage.setItem(
+                "pendingRegistrationName",
+                client.fullName || ""
+            );
+
+            hideLoader();
+
+            window.location.href =
+                "verify-otp.html";
+
+        } catch (error) {
+            console.error(
+                "Start verification error:",
+                error
+            );
+
+            hideLoader();
+
+            showToast(
+                "Unable to start verification.",
+                "error"
+            );
+        }
+    }
+);
+
+
+function clearPendingRegistration() {
+    sessionStorage.removeItem(
+        "pendingRegistrationId"
+    );
+
+    sessionStorage.removeItem(
+        "pendingRegistrationType"
+    );
+
+    sessionStorage.removeItem(
+        "pendingRegistrationPhone"
+    );
+
+    sessionStorage.removeItem(
+        "pendingRegistrationName"
+    );
+}
+
+// ============================================================
+// MEDICAL FACILITY REGISTRATION (NEW MODULE)
+// Stores facilities at bodaProgram/facilities and attributes
+// each record to the authenticated marketer.
+// ============================================================
+
+const facilityRegistrationForm = $("facilityRegistrationForm");
+const facilitiesList = $("facilitiesList");
+const facilitySearch = $("facilitySearch");
+
+function normalizeFacilityContact(value) {
+    return String(value || "").replace(/[^0-9+]/g, "").replace(/^00/, "+");
+}
+
+function facilityContactDigits(value) {
+    return String(value || "").replace(/\D/g, "");
+}
+
+if (facilityRegistrationForm) {
+    onAuthStateChanged(auth, user => {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+    });
+
+    facilityRegistrationForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const user = auth.currentUser;
+        if (!user) {
+            showToast("Please sign in again.", "error");
+            window.location.href = "index.html";
+            return;
+        }
+
+        const facilityName = $("facilityName").value.trim();
+        const contact = normalizeFacilityContact($("facilityContact").value.trim());
+        const location = $("facilityLocation").value.trim();
+        const ownerName = $("facilityOwnerName").value.trim();
+
+        if (!facilityName || !contact || !location || !ownerName) {
+            showToast("Complete all four facility details.", "error");
+            return;
+        }
+        if (facilityContactDigits(contact).length < 9) {
+            showToast("Enter a valid facility contact number.", "error");
+            return;
+        }
+
+        const submitButton = facilityRegistrationForm.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
+
+        try {
+            showLoader("Checking existing facilities...");
+            const [existingSnapshot, marketerSnapshot] = await Promise.all([
+                get(ref(database, "bodaProgram/facilities")),
+                get(ref(database, `bodaProgram/marketers/${user.uid}`))
+            ]);
+
+            const normalizedName = facilityName.toLowerCase().replace(/\s+/g, " ");
+            const normalizedLocation = location.toLowerCase().replace(/\s+/g, " ");
+            const contactDigits = facilityContactDigits(contact);
+            let duplicate = false;
+
+            if (existingSnapshot.exists()) {
+                existingSnapshot.forEach(childSnapshot => {
+                    const item = childSnapshot.val() || {};
+                    const oldContact = facilityContactDigits(item.contact || "");
+                    const oldName = String(item.facilityName || "").toLowerCase().replace(/\s+/g, " ");
+                    const oldLocation = String(item.location || "").toLowerCase().replace(/\s+/g, " ");
+                    if (oldContact === contactDigits || (oldName === normalizedName && oldLocation === normalizedLocation)) {
+                        duplicate = true;
+                    }
+                });
+            }
+
+            if (duplicate) {
+                hideLoader();
+                showToast("This facility appears to have already been registered.", "error");
+                if (submitButton) submitButton.disabled = false;
+                return;
+            }
+
+            const marketer = marketerSnapshot.exists() ? marketerSnapshot.val() : {};
+            const facilityRef = push(ref(database, "bodaProgram/facilities"));
+            const record = {
+                facilityId: facilityRef.key,
+                facilityName,
+                contact,
+                location,
+                ownerName,
+                marketerId: user.uid,
+                marketerName: marketer.fullName || user.displayName || user.email || "Marketer",
+                registeredAt: Date.now(),
+                status: "registered"
+            };
+
+            await set(facilityRef, record);
+            hideLoader();
+            facilityRegistrationForm.reset();
+            showToast("Medical facility registered successfully.", "success");
+            setTimeout(() => window.location.href = "facilities.html", 650);
+        } catch (error) {
+            console.error("Facility registration error:", error);
+            hideLoader();
+            showToast("Could not register facility. Check your connection and Firebase access.", "error");
+        } finally {
+            if (submitButton) submitButton.disabled = false;
+        }
+    });
+}
+
+if (facilitiesList) {
+    onAuthStateChanged(auth, user => {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+        loadMyFacilities(user.uid);
+    });
+}
+
+let myFacilityRecords = [];
+function loadMyFacilities(marketerId) {
+    onValue(ref(database, "bodaProgram/facilities"), snapshot => {
+        myFacilityRecords = [];
+        snapshot.forEach(childSnapshot => {
+            const facility = childSnapshot.val() || {};
+            if (facility.marketerId === marketerId) {
+                myFacilityRecords.push({ ...facility, id: childSnapshot.key });
+            }
+        });
+        myFacilityRecords.sort((a, b) => Number(b.registeredAt || 0) - Number(a.registeredAt || 0));
+        renderMyFacilities();
+    }, error => {
+        console.error("Facilities loading error:", error);
+        facilitiesList.innerHTML = '<div class="empty-state"><h3>Unable to load facilities</h3><p>Please refresh and try again.</p></div>';
+    });
+}
+
+function renderMyFacilities() {
+    if (!facilitiesList) return;
+    const queryText = (facilitySearch?.value || "").trim().toLowerCase();
+    const records = myFacilityRecords.filter(item => [item.facilityName, item.contact, item.location, item.ownerName].some(value => String(value || "").toLowerCase().includes(queryText)));
+    if ($("facilityTotal")) $("facilityTotal").textContent = myFacilityRecords.length;
+    if (!records.length) {
+        facilitiesList.innerHTML = `<div class="empty-state"><div class="empty-icon">🏥</div><h3>${myFacilityRecords.length ? "No matching facilities" : "No facilities registered yet"}</h3><p>${myFacilityRecords.length ? "Try another search term." : "Facilities you register will appear here."}</p><a class="btn btn-primary" href="register-facility.html">Register a facility</a></div>`;
+        return;
+    }
+    facilitiesList.innerHTML = records.map(item => `
+        <article class="facility-card">
+            <div class="facility-card-icon">🏥</div>
+            <div class="facility-card-main">
+                <h3>${escapeHTML(item.facilityName || "Unnamed facility")}</h3>
+                <p><strong>Owner:</strong> ${escapeHTML(item.ownerName || "-")}</p>
+                <p><strong>Contact:</strong> <a href="tel:${escapeHTML(item.contact || "")}">${escapeHTML(item.contact || "-")}</a></p>
+                <p><strong>Location:</strong> ${escapeHTML(item.location || "-")}</p>
+                <small>Registered ${formatDate(item.registeredAt)}</small>
+            </div>
+            <span class="facility-status">Registered</span>
+        </article>`).join("");
+}
+facilitySearch?.addEventListener("input", renderMyFacilities);
+
+// The earnings page reuses the same live commission total as the dashboard.
+if ($("totalEarnings") && !$("marketeerName")) {
+    onAuthStateChanged(auth, user => {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+        loadDashboardEarnings(user.uid);
+    });
+}

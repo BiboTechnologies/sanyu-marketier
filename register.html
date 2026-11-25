@@ -1,0 +1,215 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#075985">
+<title>Register community member | SANYU HOSPITAL</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+/* Registration selection */
+.registration-type {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  transition: all .2s ease;
+}
+
+.registration-type i {
+  font-size: 19px;
+}
+
+.registration-type.active {
+  background: #087443 !important;
+  color: #fff !important;
+  border: 1px solid #087443 !important;
+  box-shadow: 0 4px 12px rgba(8,116,67,.18);
+}
+
+.registration-type.secondary {
+  background: #f0f5f1;
+  color: #315b43;
+}
+
+.registration-type:hover {
+  border-color: #087443;
+}
+
+/* Navigation icons */
+.app-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.app-nav a i {
+  font-size: 14px;
+}
+
+/* Form heading icon */
+.registration-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.registration-heading-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #e8f5ed;
+  color: #087443;
+  font-size: 21px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="app-topbar">
+  <a class="app-brand" href="dashboard.html">
+    <i class="fa-solid fa-hospital"></i>
+    SANYU HOSPITAL · COMMUNITY PROGRAM
+  </a>
+
+  <button class="app-btn secondary" id="logoutBtn" type="button">
+    <i class="fa-solid fa-right-from-bracket"></i>
+    Sign out
+  </button>
+</header>
+
+<nav class="app-nav">
+  <a href="dashboard.html">
+    <i class="fa-solid fa-house"></i> Dashboard
+  </a>
+
+  <a href="register.html" class="active">
+    <i class="fa-solid fa-user-plus"></i> Register client
+  </a>
+
+  <a href="riders.html">
+    <i class="fa-solid fa-motorcycle"></i> My registrations
+  </a>
+
+  <a href="add-stage.html">
+    <i class="fa-solid fa-location-dot"></i> Add stage
+  </a>
+
+  <a href="stages.html">
+    <i class="fa-solid fa-map-location-dot"></i> Stages
+  </a>
+
+  <a href="register-facility.html">
+    <i class="fa-solid fa-hospital"></i> Register facility
+  </a>
+
+  <a href="facilities.html">
+    <i class="fa-solid fa-house-medical"></i> My facilities
+  </a>
+
+  <a href="profile.html">
+    <i class="fa-solid fa-user"></i> Profile
+  </a>
+</nav>
+
+<main class="app-shell">
+<section class="app-panel">
+
+  <div class="registration-heading">
+    <div class="registration-heading-icon">
+      <i class="fa-solid fa-users"></i>
+    </div>
+    <div>
+      <h1>Community registration</h1>
+      <p class="muted">Register a Boda Boda rider or pregnant woman.</p>
+    </div>
+  </div>
+
+  <div class="app-actions">
+
+    <button
+      type="button"
+      class="app-btn registration-type active"
+      data-type="rider">
+      <i class="fa-solid fa-motorcycle"></i>
+      Boda Boda rider
+    </button>
+
+    <button
+      type="button"
+      class="app-btn secondary registration-type"
+      data-type="pregnant">
+      <i class="fa-solid fa-person-pregnant"></i>
+      Pregnant woman
+    </button>
+
+  </div>
+
+  <form id="communityRegistrationForm">
+
+    <input type="hidden" id="registrationType" value="rider">
+
+    <div class="app-field">
+      <label for="clientName">
+        <i class="fa-solid fa-user"></i> Full name
+      </label>
+      <input id="clientName" required>
+    </div>
+
+    <div class="app-field">
+      <label for="clientPhone">
+        <i class="fa-solid fa-phone"></i> Phone number
+      </label>
+      <input
+        id="clientPhone"
+        type="tel"
+        placeholder="07XXXXXXXX"
+        required>
+    </div>
+
+    <div class="app-field">
+      <label for="clientNationalId">
+        <i class="fa-solid fa-id-card"></i> National ID (optional)
+      </label>
+      <input id="clientNationalId">
+    </div>
+
+    <div id="riderFields">
+      <div class="app-field">
+        <label for="stageSelect">
+          <i class="fa-solid fa-location-dot"></i> Boda Boda stage
+        </label>
+        <select id="stageSelect" required>
+          <option value="">Loading stages...</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="riderExtraFields"></div>
+
+    <button class="app-btn" type="submit">
+      <i class="fa-solid fa-user-check"></i>
+      Register
+    </button>
+
+  </form>
+</section>
+</main>
+
+<footer class="app-footer">
+  <i class="fa-solid fa-hospital"></i>
+  SANYU HOSPITAL · Boda Boda & Community Outreach Programme
+</footer>
+
+<script type="module" src="script.js"></script>
+
+</body>
+</html>
